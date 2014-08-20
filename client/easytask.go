@@ -42,6 +42,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	defer r.Close()
 	decoder := json.NewDecoder(r)
 	err = decoder.Decode(&confJson)
 	if err != nil {
@@ -249,9 +250,9 @@ func main() {
 	flag.Parse()
 
 	for i := 0; i < int(confJson["flow"].(float64)); i++ {
-		one, err := NewRapper("vedio")
+		one, err := NewRapper(confJson["tasktype"].(string))
 		if err != nil {
-			fmt.Println(err)
+			panic(err)
 		}
 		go one.run()
 	}
