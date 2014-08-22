@@ -32,7 +32,7 @@ type taskInfo struct {
 var (
 	confJson map[string]interface{}
 	rappers = make(map[string]rapperType)
-	tasks chan taskInfo
+	tasks chan *taskInfo
 )
 
 func init() {
@@ -49,7 +49,7 @@ func init() {
 		panic(err)
 	}
 
-	tasks = make(chan taskInfo, int(confJson["flow"].(float64)) * 2)
+	tasks = make(chan *taskInfo, int(confJson["flow"].(float64)) * 2)
 }
 
 func download(url, fn string) error {
@@ -226,6 +226,26 @@ func oneTask() taskInfo {
 	return <-tasks
 }
 
+func sayHiToServ() error {
+	para := &map[string]string{"type": confJson["tasktype"].(string), "name":confJson["rappername"].(string)}
+	resp, err = getRequest(confJson["taskServ"].(string) + "/sayhi", para)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func sendBeat() error {
+	urlStr := fmt.Sprintf("%s/beat?type=%s&name=%s", confJson["taskServ"].(string), confJson["tasktype"].(string), confJson["rappername"].(string))
+	_, err = getRequest(urlStr, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+	
 func register(name string, one rapperType) {
 	if one == nil {
 		panic("register rapper nil")
@@ -237,9 +257,8 @@ func register(name string, one rapperType) {
 }
 
 func NewRapper(typeName string) (rapper, error) {
-	var ok bool
-	var newFun rapperType
-	if newFun, ok = rappers[typeName]; ok != true {
+	newFun, ok := rappers[typeName]
+	if ok != true {
 		return nil, fmt.Errorf("no rapper types " + typeName)
 	}
 
@@ -249,6 +268,11 @@ func NewRapper(typeName string) (rapper, error) {
 func main() {
 	flag.Parse()
 
+	// 向服务器打招乎
+	if err := sayHiToServ(); err != nil {
+		panic(err)
+	}
+	
 	for i := 0; i < int(confJson["flow"].(float64)); i++ {
 		one, err := NewRapper(confJson["tasktype"].(string))
 		if err != nil {
@@ -259,5 +283,6 @@ func main() {
 
 	for {
 		time.Sleep(5 * time.Second)
+		sendBeat()
 	}
 }

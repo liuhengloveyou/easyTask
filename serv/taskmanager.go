@@ -5,13 +5,23 @@ import (
 	"fmt"
 	"net/http"
 	"io/ioutil"
+	"strings"
 	"time"
 	"runtime"
 	"flag"
 	"encoding/json"
 )
 
-var confJson map[string]interface{}
+type TaskInfo struct {
+	Tid string // 任务ID
+	Rid string // 记录ID
+	Info string // 任务内容
+}
+
+var (
+	confJson map[string]interface{}
+	TaskTypes map[string]*TaskType = make(map[string]*TaskType)
+)
 
 func init() {
 	runtime.GOMAXPROCS(8)
@@ -22,12 +32,34 @@ func init() {
 	}
 	defer r.Close()
 	decoder := json.NewDecoder(r)
-	err = decoder.Decode(&confJson)
-	if err != nil {
+	if err := decoder.Decode(&confJson); err != nil {
 		panic(err)
 	}
+	
+	if err := dbInit(); err != nil {
+		panic(err)
+	}
+	
+	if err := loadTaskType(); err != nil {
+		panic(err)
+	}
+}
 
-	dbInit()
+func loadTaskType() error {
+	tables, err := showTables()
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(tables); i++ {
+		if strings.HasPrefix(tables[i], "tasks_") {
+			tname := tables[i][6:]
+			TaskTypes[tname] = NewTaskType()
+			TaskTypes[tname].name = tname
+		}
+	}
+
+	return nil
 }
 
 func HandleRoot(w http.ResponseWriter, r *http.Request) {
@@ -62,18 +94,23 @@ func handleNewTaskType(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	name := r.FormValue("name")
-	if len(name) > 8 {
+	if name == "" || len(name) > 8 {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("name's len < 8"))
+		return
 	}
 
 	err := createDB(name)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
+		return
 	}
 
-	w.Write([]byte("success"))
+	TaskTypes[name] = NewTaskType()
+	TaskTypes[name].name = name
+	
+	w.Write([]byte("OK"))
 	
 	return
 }
@@ -87,7 +124,9 @@ func main() {
 	http.Handle("/putask", &putTaskHandler{})
 	http.Handle("/getask", &getTaskHandler{})
 	http.Handle("/uptask", &upTaskHandler{})
+	http.Handle("/sayhi", &handleSayhi{})
 	http.HandleFunc("/newtype", handleNewTaskType)
+	http.HandleFunc("/beat", handleNewTaskType)
 	
 	http.HandleFunc("/upload", handleUpload)
 	

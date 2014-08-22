@@ -254,7 +254,7 @@ func (this *rapperVedio) updateTask() {
 			(*para)["stat"] = "-1"
 			(*para)["msg"] = base64.StdEncoding.EncodeToString([]byte(oneVedioTask.err.Error()))
 		}
-		_, err = getRequest(confJson["taskServ"].(string), para)
+		_, err = getRequest(confJson["taskServ"].(string) + "/uptask", para)
 		if err != nil {
 			oneVedioTask.err = err
 			glog.Errorln("updateTask updateERR:", oneVedioTask, err)
