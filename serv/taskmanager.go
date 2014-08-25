@@ -1,15 +1,15 @@
 package main
 
 import (
-	"os"
+	"encoding/json"
 	"flag"
 	"fmt"
-	"time"
-	"runtime"
-	"strings"
 	"io/ioutil"
 	"net/http"
-	"encoding/json"
+	"os"
+	"runtime"
+	"strings"
+	"time"
 )
 
 type TaskInfo struct {
@@ -50,7 +50,7 @@ func loadTaskType() error {
 	if err != nil {
 		return err
 	}
-	
+
 	for i := 0; i < len(tables); i++ {
 		if strings.HasPrefix(tables[i], "tasks_") {
 			tname := tables[i][6:]
@@ -77,10 +77,6 @@ func HandleRoot(w http.ResponseWriter, r *http.Request) {
 	w.Write(contents)
 
 	return
-}
-
-func handleUpload(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(fmt.Sprintf("%v", time.Now().UnixNano())))
 }
 
 /*
@@ -127,8 +123,6 @@ func main() {
 	http.Handle("/sayhi", &handleSayhi{})
 	http.HandleFunc("/newtype", handleNewTaskType)
 	http.HandleFunc("/beat", handleNewTaskType)
-
-	http.HandleFunc("/upload", handleUpload)
 
 	s := &http.Server{
 		Addr:           confJson["listenaddr"].(string),
