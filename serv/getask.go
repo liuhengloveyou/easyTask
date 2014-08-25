@@ -61,7 +61,7 @@ func getGetTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rapperOne.TaskSize > int(confJson["MaxTaskPerRapper"].(float64)) {
+	if rapperOne.TaskSize() > int(confJson["MaxTaskPerRapper"].(float64)) {
 		glog.Errorln("getask to mach ERR:", rapperOne.TaskSize, int(confJson["MaxTaskPerRapper"].(float64)))
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("to much tasks"))
