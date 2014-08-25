@@ -73,19 +73,19 @@ func showTables() ([]string, error) {
 	return rst, nil
 }
 
-func newTask2DB(ttype, tid, rid, info string) (int64, error) {
-	sqlStr := fmt.Sprintf("INSERT INTO `tasks_%s`(`tid`, `rid`, `info`, `stat`) VALUES(?,?,?, 1)", ttype);
+func newTask2DB(ttype, tid, rid, info string, stat int64) (int64, error) {
+	sqlStr := fmt.Sprintf("INSERT INTO `tasks_%s`(`tid`, `rid`, `info`, `stat`) VALUES(?,?,?,%d)", ttype, stat);
 	return doInsert(sqlStr, tid, rid, info)
 }
 
 func upTask2DB(ttype, tid, msg string, stat int64) (int64, error) {
-	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=?, ``, `info`, `stat`) VALUES(?,?,?, 1)", ttype);
-	return doInsert(sqlStr, tid, rid, info)
+	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=? AND `remark`=? WHERE `tid`=?", ttype);
+	return doUpdate(sqlStr, stat, msg, tid)
 }
 
-func getTasks(ttype string, num, fid int64) ([]map[string]string, error) {
-	sqlStr := fmt.Sprintf("SELECT id, tid, rid info FROM `tasks_%s` WHERE `stat`=1 AND `id` > ? order by `addTime` limit ?", ttype)
-	return doQuery(sqlStr, fid, num)
+func getTasks(ttype string, num int64) ([]map[string]string, error) {
+	sqlStr := fmt.Sprintf("SELECT tid, rid, info FROM `tasks_%s` WHERE `stat`=1 order by `id` DESC LIMIT ?", ttype)
+	return doQuery(sqlStr, num)
 }
 
 func doQuery(sqlStr string, args ...interface{}) ([]map[string]string, error) {

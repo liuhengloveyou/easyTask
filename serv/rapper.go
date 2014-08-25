@@ -3,13 +3,12 @@ package main
 import (
 	"sync"
 	"time"
-	"container/list"
 )
 
 type Rapper struct {
 	Name string
-	Tasks *list.List // *TaskInfo
-	Lock sync.Mutex
+	tasks map[string]*TaskInfo
+	lock sync.Mutex
 	beat int64
 }
 
@@ -19,8 +18,8 @@ func NewRapper() *Rapper {
 
 func (this *Rapper) Init() *Rapper {
 	this.Name = ""
-	this.Tasks = list.New()
-	this.Lock = sync.Mutex{}
+	this.tasks = make(map[string]*TaskInfo)
+	this.lock = sync.Mutex{}
 	this.beat = time.Now().Unix()
 	return this
 }
@@ -37,35 +36,32 @@ func (this *Rapper) Kill(){
 	this.beat = -1
 }
 
-func (this *Rapper) TaskSize() int64 {
-	return int64(this.Tasks.Len())
+func (this *Rapper) TaskSize() int {
+	return len(this.tasks)
 }
 
-func (this *Rapper) AddTask(taskID *TaskInfo) {
-	this.Lock.Lock()
-	this.Tasks.PushBack(taskID)
-	this.Lock.Unlock()
+func (this *Rapper) AddTask(task *TaskInfo) {
+	this.lock.Lock()
+	this.tasks[task.Tid] = task
+	this.lock.Unlock()
 }
 
-func (this *Rapper) GetTaskOne() string {
-	e := this.Tasks.Back()
-	if nil != e {
-		return e.Value.(string)
-	}
-
-	return ""
+func (this *Rapper) DelTask(tid string) {
+	this.lock.Lock()
+	delete(this.tasks, tid)
+	this.lock.Unlock()
 }
 
-func (this *Rapper) HasTask(taskID string) interface{} {
-	if "" == taskID {
-		return nil
-	}
-
-	for e := this.Tasks.Front(); e != nil; e = e.Next() {
-		if e.Value == taskID {
-			return e
-		}
-	}
+func (this *Rapper) ReSet() []*TaskInfo {
+	this.lock.Lock()
+	defer this.lock.Unlock()
 	
-	return nil
+	tasks := make([]*TaskInfo, len(this.tasks))
+	for _, v := range this.tasks {
+		tasks = append(tasks, v)
+	}
+
+	this.tasks = make(map[string]*TaskInfo)
+	
+	return tasks
 }

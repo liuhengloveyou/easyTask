@@ -40,7 +40,7 @@ func getGetTask(w http.ResponseWriter, r *http.Request) {
 	if inum >= int(confJson["MaxTaskPerRapper"].(float64)) {
 		glog.Errorln("getask num ERR:", num)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("num too bag"))
+		w.Write([]byte("num to bag"))
 		return
 	}
 	glog.Infoln("getask: ", name, ttype, num)
@@ -61,6 +61,13 @@ func getGetTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if rapperOne.TaskSize > int(confJson["MaxTaskPerRapper"].(float64)) {
+		glog.Errorln("getask to mach ERR:", rapperOne.TaskSize, int(confJson["MaxTaskPerRapper"].(float64)))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("to much tasks"))
+		return
+	}
+	
 	rst := make([]TaskInfo, 0)
 	tasks := taskTypeOne.distTask(rapperOne, inum)
 	for _, tn := range tasks {

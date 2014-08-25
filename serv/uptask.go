@@ -1,7 +1,7 @@
 package main
 
 import (
-//	"strconv"
+	"strconv"
 	"net/http"
 
 	"github.com/golang/glog"
@@ -60,7 +60,7 @@ func getUpTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	taskTypeOne.upTask(stati, tid, msg)
+	taskTypeOne.upTask(rapperOne, int64(stati), tid, msg)
 		
 	w.Write([]byte("OK"))
 
