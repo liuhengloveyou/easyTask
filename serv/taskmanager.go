@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"runtime"
@@ -62,23 +61,6 @@ func loadTaskType() error {
 	return nil
 }
 
-func HandleRoot(w http.ResponseWriter, r *http.Request) {
-	fn := r.URL.Path[1:]
-	if fn == "" {
-		w.Write([]byte("task manager service\n"))
-		return
-	}
-
-	contents, err := ioutil.ReadFile("./web/" + fn)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-	w.Write(contents)
-
-	return
-}
-
 /*
 GET /newtype?name=typename
 */
@@ -115,15 +97,16 @@ func main() {
 	flag.Parse()
 	fmt.Println("task manager service")
 
-	http.HandleFunc("/", HandleRoot)
-
 	http.Handle("/getask", &getTaskHandler{})
 	http.Handle("/putask", &putTaskHandler{})
 	http.Handle("/uptask", &upTaskHandler{})
-	http.Handle("/sayhi", &handleSayhi{})
+	http.Handle("/sayhi", &sayhiHandler{})
 	http.HandleFunc("/newtype", handleNewTaskType)
 	http.HandleFunc("/beat", handleNewTaskType)
-
+	
+	http.Handle("/monitor", &monitorHandler{})
+	http.Handle("/web/", http.StripPrefix("/web/", http.FileServer(http.Dir("./static/"))))
+	
 	s := &http.Server{
 		Addr:           confJson["listenaddr"].(string),
 		ReadTimeout:    10 * time.Minute,

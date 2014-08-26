@@ -29,13 +29,11 @@ stat:
 */
 
 import (
-	"fmt"
 	"database/sql"
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 )
-
-const TABLESQL = "CREATE TABLE `tasks_%s` (`id` int(11) NOT NULL AUTO_INCREMENT,`tid` varchar(33) NOT NULL,`rid` varchar(32) NOT NULL,`info` varchar(1024) NOT NULL,`stat` int(11) NOT NULL DEFAULT '0',`addTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,`getTime` timestamp NULL DEFAULT '0000-00-00 00:00:00',`overTime` timestamp NULL DEFAULT '0000-00-00 00:00:00',`rapper` varchar(256) DEFAULT NULL,`client` varchar(256) DEFAULT NULL,`remark` text,PRIMARY KEY (`id`),UNIQUE KEY `inx_tid` (`tid`)) ENGINE=InnoDB DEFAULT CHARSET=utf8"
 
 var mysqlConn *sql.DB
 
@@ -50,6 +48,8 @@ func dbInit() error {
 }
 
 func createDB(name string) error {
+	const TABLESQL = "CREATE TABLE `tasks_%s` (`id` int(11) NOT NULL AUTO_INCREMENT,`tid` varchar(33) NOT NULL,`rid` varchar(32) NOT NULL,`info` varchar(1024) NOT NULL,`stat` int(11) NOT NULL DEFAULT '0',`addTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,`getTime` timestamp NULL DEFAULT '0000-00-00 00:00:00',`overTime` timestamp NULL DEFAULT '0000-00-00 00:00:00',`rapper` varchar(256) DEFAULT NULL,`client` varchar(256) DEFAULT NULL,`remark` text,PRIMARY KEY (`id`),UNIQUE KEY `inx_tid` (`tid`)) ENGINE=InnoDB DEFAULT CHARSET=utf8"
+
 	sqlStr := fmt.Sprintf(TABLESQL, name)
 	_, err := mysqlConn.Exec(sqlStr)
 	if err != nil {
@@ -64,7 +64,7 @@ func showTables() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	rst := make([]string, len(tables))
 	for n, tn := range tables {
 		rst[n] = tn["Tables_in_taskManager"]
@@ -74,12 +74,12 @@ func showTables() ([]string, error) {
 }
 
 func newTask2DB(ttype, tid, rid, info string, stat int64) (int64, error) {
-	sqlStr := fmt.Sprintf("INSERT INTO `tasks_%s`(`tid`, `rid`, `info`, `stat`) VALUES(?,?,?,%d)", ttype, stat);
+	sqlStr := fmt.Sprintf("INSERT INTO `tasks_%s`(`tid`, `rid`, `info`, `stat`) VALUES(?,?,?,%d)", ttype, stat)
 	return doInsert(sqlStr, tid, rid, info)
 }
 
 func upTask2DB(ttype, tid, msg string, stat int64) (int64, error) {
-	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=? AND `remark`=? WHERE `tid`=?", ttype);
+	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=? AND `remark`=? WHERE `tid`=?", ttype)
 	return doUpdate(sqlStr, stat, msg, tid)
 }
 
@@ -117,7 +117,7 @@ func doQuery(sqlStr string, args ...interface{}) ([]map[string]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		
+
 		tmap := make(map[string]string, len(columns))
 		for i, col := range values {
 			if col == nil {
@@ -128,10 +128,9 @@ func doQuery(sqlStr string, args ...interface{}) ([]map[string]string, error) {
 		}
 		ret = append(ret, tmap)
 	}
-	
+
 	return ret, nil
 }
-
 
 func doInsert(sqlStr string, args ...interface{}) (int64, error) {
 	stmt, err := mysqlConn.Prepare(sqlStr)

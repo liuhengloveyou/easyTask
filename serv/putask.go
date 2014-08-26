@@ -13,7 +13,7 @@ type putTaskHandler struct{}
 
 func (this *putTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		getPutTask(w, r)
+		this.doGet(w, r)
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
@@ -21,7 +21,7 @@ func (this *putTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func getPutTask(w http.ResponseWriter, r *http.Request) {
+func (this *putTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	const USAGE = "GET /putask?type=typename&rid=recordid&info=taskinfo"
 
 	r.ParseForm()

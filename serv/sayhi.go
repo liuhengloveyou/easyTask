@@ -6,11 +6,11 @@ import (
 	"github.com/golang/glog"
 )
 
-type handleSayhi struct {}
+type sayhiHandler struct {}
 
-func (this *handleSayhi) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (this *sayhiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		getSayhi(w, r)
+		this.doGet(w, r)
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
@@ -18,7 +18,7 @@ func (this *handleSayhi) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func getSayhi(w http.ResponseWriter, r *http.Request) {
+func (this *sayhiHandler) doGet (w http.ResponseWriter, r *http.Request) {
 	const USAGE = "GET /sayhi?type=typename&name=rappername"
 	
 	r.ParseForm()

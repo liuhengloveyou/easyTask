@@ -11,7 +11,7 @@ type upTaskHandler struct {}
 
 func (this *upTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		getUpTask(w, r)
+		this.doGet(w, r)
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
@@ -19,7 +19,7 @@ func (this *upTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func getUpTask(w http.ResponseWriter, r *http.Request) {
+func (this *upTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	const USAGE = "GET /uptask?type=typename&name=rappername&tid=taskid&stat=1|-1&msg=errormsg"
 	
 	r.ParseForm()
