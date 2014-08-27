@@ -32,8 +32,8 @@ func (this *putTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	taskTypeOne, ok := TaskTypes[ttype]
-	if ok == false {
+	taskTypeOne, _ := GetRapper(ttype, "")
+	if taskTypeOne == nil {
 		glog.Errorln("putask type err:", ttype)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("no such task type"))

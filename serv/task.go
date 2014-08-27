@@ -1,10 +1,10 @@
 package main
 
 import (
+	"container/list"
 	"sync"
 	"time"
-	"container/list"
-	
+
 	"github.com/golang/glog"
 )
 
@@ -25,6 +25,8 @@ type TaskInfo2DB struct {
 	taskInfo *TaskInfo
 	sign     byte // 'A' = insert; 'U' = update
 	stat     int64
+	gtime    int64
+	otime    int64
 	msg      string
 }
 
@@ -44,8 +46,7 @@ func (this *TaskType) Init() *TaskType {
 
 func (this *TaskType) resetRapper(one *Rapper) {
 	tasks := one.ReSet()
-	one.Beat()
-	
+
 	this.backLock.Lock()
 	for _, tn := range tasks {
 		this.backList.PushFront(tn)
@@ -72,12 +73,12 @@ func (this *TaskType) upTask(one *Rapper, stat int64, tid, msg string) {
 		go this.realUpTask()
 	})
 
-	one.DelTask(tid)
-
-	t := &TaskInfo2DB{taskInfo: &TaskInfo{Tid: tid}, stat: stat, msg: msg, sign: 'U'}
+	t := &TaskInfo2DB{taskInfo: &TaskInfo{Tid: tid}, stat: stat, otime:time.Now().Unix(), msg: msg, sign: 'U'}
 	this.inLock.Lock()
 	this.inList.PushBack(t)
 	this.inLock.Unlock()
+
+	one.DelTask(tid)
 }
 
 func (this *TaskType) realUpTask() {
@@ -93,13 +94,13 @@ func (this *TaskType) realUpTask() {
 			_, err := newTask2DB(this.name, t.taskInfo.Tid, t.taskInfo.Rid, t.taskInfo.Info, t.stat)
 			if err != nil {
 				glog.Errorln(err)
-		} else if t.stat == 2 {
+			} else if t.stat == 2 {
 				this.backLock.Lock()
-				this.backList.PushBack(one)
+				this.backList.PushBack(one) // 直接入分发队列
 				this.backLock.Unlock()
 			}
 		} else if t.sign == 'U' {
-			_, err := upTask2DB(this.name, t.taskInfo.Tid, t.msg, t.stat)
+			_, err := upTask2DB(this.name, t.taskInfo.Tid, t.msg, t.stat, t.gtime, t.otime)
 			if err != nil {
 				glog.Errorln(err)
 			}
@@ -148,6 +149,12 @@ func (this *TaskType) realDistTask() {
 
 		for _, tn := range tasks {
 			this.taskChan <- &TaskInfo{Tid: tn["tid"], Rid: tn["rid"], Info: tn["info"]}
+
+			// 列队更新
+			t := &TaskInfo2DB{taskInfo: &TaskInfo{Tid: tn["tid"]}, stat: 2, gtime:time.Now().Unix(), sign: 'U'}
+			this.inLock.Lock()
+			this.inList.PushFront(t)
+			this.inLock.Unlock()
 		}
 	}
 }

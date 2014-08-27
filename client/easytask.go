@@ -182,7 +182,7 @@ func getRequest(url string, para *map[string]string) ([]byte, error) {
 }
 
 var once sync.Once
-func oneTask() taskInfo {
+func oneTask() *taskInfo {
 	once.Do(func() {
 		go func() {
 			count := 0
@@ -217,7 +217,7 @@ func oneTask() taskInfo {
 					}
 					count++
 					glog.Infoln(count, taskJson[i])
-					tasks <- taskJson[i]
+					tasks <- &taskJson[i]
 				}
 			}
 		}()
@@ -228,17 +228,21 @@ func oneTask() taskInfo {
 
 func sayHiToServ() error {
 	para := &map[string]string{"type": confJson["tasktype"].(string), "name":confJson["rappername"].(string)}
-	resp, err = getRequest(confJson["taskServ"].(string) + "/sayhi", para)
+	resp, err := getRequest(confJson["taskServ"].(string) + "/sayhi", para)
 	if err != nil {
 		return err
 	}
 
+	if string(resp) != "OK" {
+		return fmt.Errorf("%s", resp)
+	}
+	
 	return nil
 }
 
 func sendBeat() error {
-	urlStr := fmt.Sprintf("%s/beat?type=%s&name=%s", confJson["taskServ"].(string), confJson["tasktype"].(string), confJson["rappername"].(string))
-	_, err = getRequest(urlStr, nil)
+	urlStr := fmt.Sprintf("%s/beat?ttype=%s&name=%s", confJson["taskServ"].(string), confJson["tasktype"].(string), confJson["rappername"].(string))
+	_, err := getRequest(urlStr, nil)
 	if err != nil {
 		return err
 	}

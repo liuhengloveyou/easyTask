@@ -78,8 +78,8 @@ func newTask2DB(ttype, tid, rid, info string, stat int64) (int64, error) {
 	return doInsert(sqlStr, tid, rid, info)
 }
 
-func upTask2DB(ttype, tid, msg string, stat int64) (int64, error) {
-	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=? AND `remark`=? WHERE `tid`=?", ttype)
+func upTask2DB(ttype, tid, msg string, stat, gtime, otime int64) (int64, error) {
+	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=? AND `remark`=? AND `getTime`=%d AND `overTime`=%d WHERE `tid`=?", gtime, otime, ttype)
 	return doUpdate(sqlStr, stat, msg, tid)
 }
 

@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/golang/glog"
 )
 
 type TaskInfo struct {
@@ -61,10 +63,43 @@ func loadTaskType() error {
 	return nil
 }
 
-/*
-GET /newtype?name=typename
-*/
+func GetRapper(ttype, name string) (*TaskType, *Rapper) {
+	taskTypeOne, ok := TaskTypes[ttype]
+	if ok == false {
+		return nil, nil
+	}
+
+	rapperOne, ok := taskTypeOne.rappers[name]
+	if ok == false {
+		return taskTypeOne, nil
+	}
+
+	return taskTypeOne, rapperOne
+}
+
+func rapperCleaner() {
+	for {
+		time.Sleep(1 * time.Second)
+
+		for k, v := range TaskTypes {
+			for k1, v1 := range (*v).rappers {
+				if v1.Beat(false) < 0 {
+					continue // 已经死了就不要打扰人家
+				}
+				if (time.Now().Unix() - v1.Beat(false)) > int64(confJson["RapperBeatOut"].(float64)) {
+					v.resetRapper(v1)
+					v1.Kill()
+					glog.Warningln("KILL RAPPER: ", k, k1)
+				}
+			}
+		}
+
+	}
+}
+
 func handleNewTaskType(w http.ResponseWriter, r *http.Request) {
+	const USAGE = "GET /newtype?name=typename"
+
 	if r.Method != "GET" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -72,7 +107,12 @@ func handleNewTaskType(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	name := r.FormValue("name")
-	if name == "" || len(name) > 8 {
+	if name == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(USAGE))
+		return
+
+	} else if len(name) > 8 {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("name's len < 8"))
 		return
@@ -93,20 +133,53 @@ func handleNewTaskType(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func handleBeat(w http.ResponseWriter, r *http.Request) {
+	const USAGE = "GET /beat?type=tasktype&name=rappername"
+
+	if r.Method != "GET" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	r.ParseForm()
+	ttype, name := r.FormValue("type"), r.FormValue("name")
+	if ttype == "" || name == "" {
+		glog.Errorln("beat ERR:", ttype, name)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(USAGE))
+		return
+	}
+
+	taskTypeOne, rapperOne := GetRapper(ttype, name)
+	if taskTypeOne == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("no such task type."))
+		return
+	} else if rapperOne == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("no such rapper"))
+		return
+	}
+
+	rapperOne.Beat(true)
+
+	w.Write([]byte("OK"))
+	return
+}
+
 func main() {
 	flag.Parse()
-	fmt.Println("task manager service")
 
-	http.Handle("/getask", &getTaskHandler{})
 	http.Handle("/putask", &putTaskHandler{})
+	http.Handle("/getask", &getTaskHandler{})
 	http.Handle("/uptask", &upTaskHandler{})
 	http.Handle("/sayhi", &sayhiHandler{})
 	http.HandleFunc("/newtype", handleNewTaskType)
-	http.HandleFunc("/beat", handleNewTaskType)
-	
+	http.HandleFunc("/beat", handleBeat)
+
 	http.Handle("/monitor", &monitorHandler{})
 	http.Handle("/web/", http.StripPrefix("/web/", http.FileServer(http.Dir("./static/"))))
-	
+
 	s := &http.Server{
 		Addr:           confJson["listenaddr"].(string),
 		ReadTimeout:    10 * time.Minute,
@@ -114,6 +187,9 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
+	go rapperCleaner()
+
+	fmt.Println("easytask GO...")
 	if err := s.ListenAndServe(); err != nil {
 		panic("ListenAndServe: " + err.Error())
 	}

@@ -63,7 +63,7 @@ func (this *monitorHandler) infoData(ttype, tid string) []byte {
 	sqlStr := fmt.Sprintf("SELECT * FROM `tasks_%s` WHERE `tid`=?", ttype)
 	rst, err := doQuery(sqlStr, tid)
 	if err != nil {
-		glog.Errorln(err)
+		glog.Errorln(sqlStr, err)
 		return nil
 	}
 
@@ -87,7 +87,7 @@ func (this *monitorHandler) monitorData() []monitorData {
 
 		one := monitorData{Name: k, Ibuff: si, Obuff: so, Ncout: nc, Icout: ic, Scout: sc, Ecout: ec, Nrec: nr, Irec: ir, Erec: er}
 
-		for k, _ := range (*v).rappers {
+		for k, _ := range v.rappers {
 			one.Rappers = append(one.Rappers, k)
 		}
 		
@@ -102,7 +102,7 @@ func (this *monitorHandler) getCount(ttype string) (ncout, icout, scout, ecout i
 	sqlStr := fmt.Sprintf("SELECT `stat`, count(0) cou FROM `tasks_%s` GROUP BY `stat`", ttype)
 	rst, err := doQuery(sqlStr)
 	if err != nil {
-		glog.Errorln(err)
+		glog.Errorln(sqlStr, err)
 		return
 	}
 
@@ -133,7 +133,7 @@ func (this *monitorHandler) getRecord(ttype string) (nr, ir, er []string) {
 	sqlStr := fmt.Sprintf("select tid,stat from(select @gid:=@cgid,@cgid:=t1.stat,if(@gid=@cgid,@rank:=@rank+1,@rank:=1) rank,t1.* FROM (select tid,stat from `tasks_%s` ORDER BY `id` DESC) t1,(select @gid:=1,@cgid:=1,@rank:=1) t2)t3 where t3.rank<=%d", ttype, NUM)
 	rst, err := doQuery(sqlStr)
 	if err != nil {
-		glog.Errorln(err)
+		glog.Errorln(sqlStr, err)
 		return
 	}
 

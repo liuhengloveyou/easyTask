@@ -44,16 +44,13 @@ func (this *upTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	taskTypeOne, ok := TaskTypes[ttype]
-	if ok == false {
+	taskTypeOne, rapperOne := GetRapper(ttype, name)
+	if taskTypeOne == nil {
 		glog.Errorln("putask type err:", ttype)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("no such task type"))
 		return
-	}
-
-	rapperOne, ok := taskTypeOne.rappers[name]
-	if ok == false {
+	} else if rapperOne == nil {
 		glog.Errorln("getask rapper nil:", ttype, name)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("no such rapper"))

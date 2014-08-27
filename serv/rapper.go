@@ -24,8 +24,8 @@ func (this *Rapper) Init() *Rapper {
 	return this
 }
 
-func (this *Rapper) Beat() int64 {
-	if this.beat > 0 {
+func (this *Rapper) Beat(b bool) int64 {
+	if b == true {
 		this.beat = time.Now().Unix()
 	}
 	
@@ -60,8 +60,7 @@ func (this *Rapper) ReSet() []*TaskInfo {
 	for _, v := range this.tasks {
 		tasks = append(tasks, v)
 	}
-
-	this.tasks = make(map[string]*TaskInfo)
+	this.tasks = nil
 	
 	return tasks
 }

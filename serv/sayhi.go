@@ -29,20 +29,20 @@ func (this *sayhiHandler) doGet (w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(USAGE))
 		return
 	}
-	
-	taskTypeOne, ok := TaskTypes[ttype]
-	if ok != true {
+
+	taskTypeOne, rapperOne := GetRapper(ttype, name)
+	if taskTypeOne == nil {
 		glog.Errorln("sayhi to nil type:", ttype)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("no such task type."))
 		return
 	}
 
-	rapperOne, ok := taskTypeOne.rappers[name]
-	if ok == false {
+	if rapperOne == nil {
 		taskTypeOne.rappers[name] = NewRapper()
 	} else {
 		taskTypeOne.resetRapper(rapperOne)
+		rapperOne.Beat(true)
 	}
 
 	w.Write([]byte("OK"))
