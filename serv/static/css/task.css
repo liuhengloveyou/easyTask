@@ -53,15 +53,15 @@ body{ width: 100%; min-width: 320px; font-size: 16px; font-family: Verdana;}
 .searchTxt{ width: 260px;}
 .container{ height: 100%;}
 
-.dataModule{ height: 302px;}
+.dataModule{ height: 402px;}
 .dataModule:nth-of-type(odd) .datatable{ background: #F7F7F7;}
 /* aside */
-.aside{ width: 0; height: 100%; background: #EEF2F5; padding: 20px 0; height: 300px;}
+.aside{ width: 0; height: 100%; background: #EEF2F5; padding: 20px 0; height: 400px;}
 .aside p{ height: 32px; line-height: 32px; color: #898B8D; padding-left: 2em;  font-size: 0.875em;}
 .aside p label{ width: 60px; display: inline-block;}
 .aside p.task-type{ font-size: 1em; color: #666; font-weight: bold;}
 /* datatable */
-.datatable{ width: 0; -webkit-box-flex: 6; -moz-box-flex: 6; height: 300px; overflow: auto; border-top: 1px solid #f2f2f2;}
+.datatable{ width: 0; -webkit-box-flex: 6; -moz-box-flex: 6; height: 400px; overflow: auto; border-top: 1px solid #f2f2f2;}
 .datatable ul{ width: 0; border-right: 1px solid #eee;}
 .datatable li{ height: 36px; line-height: 36px; color: #666;font-size: 1.0em; text-align: center; cursor: pointer; border-bottom: 1px solid #efefef;}
 .datatable li:nth-of-type(odd){ background: #eee;}
