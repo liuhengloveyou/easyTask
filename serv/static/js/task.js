@@ -53,7 +53,7 @@ var task = (function($){
 			json = JSON.parse(data);
 			Alert('<table class="info">' + docInfo(json) + '</table>');
 		    } else if (data == "") {
-			Alert('未找到该');
+			Alert('未找到该任务信息');
 		    }
 		},
 		error: function(msg) {

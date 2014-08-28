@@ -74,17 +74,22 @@ func showTables() ([]string, error) {
 }
 
 func newTask2DB(ttype, tid, rid, info string, stat int64) (int64, error) {
-	sqlStr := fmt.Sprintf("INSERT INTO `tasks_%s`(`tid`, `rid`, `info`, `stat`) VALUES(?,?,?,%d)", ttype, stat)
-	return doInsert(sqlStr, tid, rid, info)
+	sqlStr := fmt.Sprintf("INSERT INTO `tasks_%s`(`tid`, `rid`, `info`, `stat`) VALUES(?,?,?,?)", ttype)
+	return doInsert(sqlStr, tid, rid, info, stat)
 }
 
-func upTask2DB(ttype, tid, msg string, stat, gtime, otime int64) (int64, error) {
-	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=? AND `remark`=? AND `getTime`=%d AND `overTime`=%d WHERE `tid`=?", gtime, otime, ttype)
-	return doUpdate(sqlStr, stat, msg, tid)
+func upTask2DB(ttype, tid, rapper, msg string, stat int64) (int64, error) {
+	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=?, `rapper`=?, `overTime`=CURRENT_TIMESTAMP, `remark`=? WHERE `tid`=?", ttype)
+	return doUpdate(sqlStr, stat, rapper, msg, tid)
+}
+
+func upTaskStat2DB(ttype string, ids, ide int64) (int64, error) {
+	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=2, `getTime`=CURRENT_TIMESTAMP WHERE `id` >= ? AND `id` <= ? AND `stat`=1", ttype)
+	return doUpdate(sqlStr, ide, ids)
 }
 
 func getTasks(ttype string, num int64) ([]map[string]string, error) {
-	sqlStr := fmt.Sprintf("SELECT tid, rid, info FROM `tasks_%s` WHERE `stat`=1 order by `id` DESC LIMIT ?", ttype)
+	sqlStr := fmt.Sprintf("SELECT `id`, `tid`, `rid`, `info` FROM `tasks_%s` WHERE `stat`=1 order by `id` DESC LIMIT ?", ttype)
 	return doQuery(sqlStr, num)
 }
 

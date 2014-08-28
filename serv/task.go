@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/list"
+	"strconv"
 	"sync"
 	"time"
 
@@ -13,20 +14,16 @@ type TaskType struct {
 	rappers  map[string]*Rapper
 	taskChan chan *TaskInfo
 
-	backList *list.List // *TaskInfo
-	inList   *list.List // *TaskInfo2DB
-	backLock sync.Mutex
-	inLock   sync.RWMutex
-
-	once [2]sync.Once
+	buff [2]*list.List // outbuff: *TaskInfo, inbuff: *TaskInfo2DB
+	lock [2]sync.Mutex // outbuff lock, inbuff lock
+	once [2]sync.Once  // outbuff once, inbuff once
 }
 
 type TaskInfo2DB struct {
 	taskInfo *TaskInfo
 	sign     byte // 'A' = insert; 'U' = update
 	stat     int64
-	gtime    int64
-	otime    int64
+	rapper   string
 	msg      string
 }
 
@@ -38,8 +35,8 @@ func (this *TaskType) Init() *TaskType {
 	this.name = ""
 	this.rappers = make(map[string]*Rapper)
 	this.taskChan = make(chan *TaskInfo, int64(confJson["MaxTaskPerRapper"].(float64))*2)
-	this.backList = list.New()
-	this.inList = list.New()
+	this.buff[0] = list.New()
+	this.buff[1] = list.New()
 
 	return this
 }
@@ -47,11 +44,12 @@ func (this *TaskType) Init() *TaskType {
 func (this *TaskType) resetRapper(one *Rapper) {
 	tasks := one.ReSet()
 
-	this.backLock.Lock()
+	this.lock[0].Lock()
+	defer this.lock[0].Unlock()
+
 	for _, tn := range tasks {
-		this.backList.PushFront(tn)
+		this.buff[0].PushFront(tn)
 	}
-	this.backLock.Unlock()
 
 	return
 }
@@ -62,10 +60,9 @@ func (this *TaskType) newTask(task *TaskInfo, stat int64) {
 	})
 
 	t := &TaskInfo2DB{taskInfo: task, sign: 'A', stat: stat}
-
-	this.inLock.Lock()
-	this.inList.PushBack(t)
-	this.inLock.Unlock()
+	this.lock[1].Lock()
+	this.buff[1].PushBack(t)
+	this.lock[1].Unlock()
 }
 
 func (this *TaskType) upTask(one *Rapper, stat int64, tid, msg string) {
@@ -73,19 +70,19 @@ func (this *TaskType) upTask(one *Rapper, stat int64, tid, msg string) {
 		go this.realUpTask()
 	})
 
-	t := &TaskInfo2DB{taskInfo: &TaskInfo{Tid: tid}, stat: stat, otime:time.Now().Unix(), msg: msg, sign: 'U'}
-	this.inLock.Lock()
-	this.inList.PushBack(t)
-	this.inLock.Unlock()
+	t := &TaskInfo2DB{taskInfo: &TaskInfo{Tid: tid}, stat: stat, rapper: one.Name, msg: msg, sign: 'U'}
+	this.lock[1].Lock()
+	this.buff[1].PushBack(t)
+	this.lock[1].Unlock()
 
 	one.DelTask(tid)
 }
 
 func (this *TaskType) realUpTask() {
 	for {
-		one := this.inList.Front()
+		one := this.buff[1].Front()
 		if one == nil {
-			time.Sleep(200 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 			continue
 		}
 
@@ -95,32 +92,34 @@ func (this *TaskType) realUpTask() {
 			if err != nil {
 				glog.Errorln(err)
 			} else if t.stat == 2 {
-				this.backLock.Lock()
-				this.backList.PushBack(one) // 直接入分发队列
-				this.backLock.Unlock()
+				this.lock[0].Lock()
+				this.buff[0].PushBack(t.taskInfo) // 直接入分发队列
+				this.lock[0].Unlock()
 			}
 		} else if t.sign == 'U' {
-			_, err := upTask2DB(this.name, t.taskInfo.Tid, t.msg, t.stat, t.gtime, t.otime)
+			_, err := upTask2DB(this.name, t.taskInfo.Tid, t.rapper, t.msg, t.stat)
 			if err != nil {
 				glog.Errorln(err)
 			}
 		}
 
-		this.inLock.Lock()
-		this.inList.Remove(one)
-		this.inLock.Unlock()
+		this.lock[1].Lock()
+		this.buff[1].Remove(one)
+		this.lock[1].Unlock()
 	}
 }
 
 func (this *TaskType) distTask(one *Rapper, num int) []*TaskInfo {
-	this.once[1].Do(func() {
+	this.once[0].Do(func() {
 		go this.realDistTask()
 	})
 
 	rst := make([]*TaskInfo, num)
 	for i := 0; i < num; i++ {
 		rst[i] = <-this.taskChan
-		one.AddTask(rst[i])
+		if rst[i] != nil {
+			one.AddTask(rst[i])
+		}
 	}
 
 	return rst
@@ -128,12 +127,12 @@ func (this *TaskType) distTask(one *Rapper, num int) []*TaskInfo {
 
 func (this *TaskType) realDistTask() {
 	for {
-		one := this.backList.Front()
+		one := this.buff[0].Front()
 		if one != nil {
 			this.taskChan <- one.Value.(*TaskInfo)
-			this.backLock.Lock()
-			this.backList.Remove(one) // 这里不能批量操作
-			this.backLock.Unlock()
+			this.lock[0].Lock()
+			this.buff[0].Remove(one) // 这里不能批量操作
+			this.lock[0].Unlock()
 			continue
 		}
 
@@ -142,23 +141,30 @@ func (this *TaskType) realDistTask() {
 			glog.Errorln(err)
 		}
 
-		if tasks == nil {
+		if tasks == nil || len(tasks) < 1 {
 			this.taskChan <- nil // 写满阻塞
 			continue
 		}
 
+		var ids, ide string
 		for _, tn := range tasks {
 			this.taskChan <- &TaskInfo{Tid: tn["tid"], Rid: tn["rid"], Info: tn["info"]}
 
-			// 列队更新
-			t := &TaskInfo2DB{taskInfo: &TaskInfo{Tid: tn["tid"]}, stat: 2, gtime:time.Now().Unix(), sign: 'U'}
-			this.inLock.Lock()
-			this.inList.PushFront(t)
-			this.inLock.Unlock()
+			ide = tn["id"]
+			if ids == "" {
+				ids = tn["id"]
+			}
+		}
+
+		// 更新任务状态
+		idsi, _ := strconv.ParseInt(ids, 10, 64)
+		idei, _ := strconv.ParseInt(ide, 10, 64)
+		if _, err := upTaskStat2DB(this.name, idsi, idei); err != nil {
+			glog.Errorln(err)
 		}
 	}
 }
 
 func (this *TaskType) BuffSize() (int64, int64) {
-	return int64(this.inList.Len()), int64(this.backList.Len())
+	return int64(this.buff[1].Len()), int64(this.buff[0].Len())
 }

@@ -1,18 +1,18 @@
 package main
 
 import (
-	"os"
-	"io"
-	"fmt"
 	"bytes"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"mime/multipart"
+	"net/http"
+	"os"
+	"runtime"
 	"sync"
 	"time"
-	"flag"
-	"runtime"
-	"net/http"
-	"io/ioutil"
-	"encoding/json"
-	"mime/multipart"
 
 	"github.com/golang/glog"
 )
@@ -24,15 +24,15 @@ type rapper interface {
 type rapperType func() rapper
 
 type taskInfo struct {
-	Tid string // 任务ID
-	Rid string // 记录ID
+	Tid  string // 任务ID
+	Rid  string // 记录ID
 	Info string // 任务内容
 }
 
 var (
 	confJson map[string]interface{}
-	rappers = make(map[string]rapperType)
-	tasks chan *taskInfo
+	rappers  = make(map[string]rapperType)
+	tasks    chan *taskInfo
 )
 
 func init() {
@@ -49,7 +49,7 @@ func init() {
 		panic(err)
 	}
 
-	tasks = make(chan *taskInfo, int(confJson["flow"].(float64)) * 2)
+	tasks = make(chan *taskInfo, int(confJson["flow"].(float64))*2)
 }
 
 func download(url, fn string) error {
@@ -62,7 +62,7 @@ func download(url, fn string) error {
 		return err
 	}
 	defer f.Close()
-	
+
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
@@ -173,8 +173,8 @@ func getRequest(url string, para *map[string]string) ([]byte, error) {
 		return nil, err
 	}
 	resp.Body.Close()
-	
-	if resp.StatusCode != 200{
+
+	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("%d\r\n%s", resp.StatusCode, string(body))
 	}
 
@@ -182,22 +182,24 @@ func getRequest(url string, para *map[string]string) ([]byte, error) {
 }
 
 var once sync.Once
+
 func oneTask() *taskInfo {
 	once.Do(func() {
 		go func() {
 			count := 0
-			urlStr := fmt.Sprintf("%s/getask?me=%s&type=%s&num=%d", confJson["taskServ"], confJson["rappername"], confJson["tasktype"], int64(confJson["flow"].(float64)) * 2 + 3)
+			urlStr := fmt.Sprintf("%s/getask?name=%s&type=%s&num=%d", confJson["taskServ"], confJson["rappername"], confJson["tasktype"], int64(confJson["flow"].(float64))*2+3)
 			for {
 				resp, err := http.Get(urlStr)
 				if err != nil {
 					glog.Errorln(err, urlStr)
+					time.Sleep(3 * time.Second)
 					continue
 				}
 
 				body, err := ioutil.ReadAll(resp.Body)
 				resp.Body.Close()
-				if err != nil || resp.StatusCode != 200{
-					glog.Errorln(err, resp.StatusCode, body)
+				if err != nil || resp.StatusCode != 200 {
+					glog.Errorln(err, resp.StatusCode, string(body))
 					time.Sleep(3 * time.Second)
 					continue
 				}
@@ -206,6 +208,12 @@ func oneTask() *taskInfo {
 				err = json.Unmarshal(body, &taskJson)
 				if err != nil {
 					glog.Errorln(err, string(body))
+					time.Sleep(3 * time.Second)
+					continue
+				}
+
+				if 1 > len(taskJson) {
+					glog.Errorln("gettask nil")
 					time.Sleep(3 * time.Second)
 					continue
 				}
@@ -227,8 +235,8 @@ func oneTask() *taskInfo {
 }
 
 func sayHiToServ() error {
-	para := &map[string]string{"type": confJson["tasktype"].(string), "name":confJson["rappername"].(string)}
-	resp, err := getRequest(confJson["taskServ"].(string) + "/sayhi", para)
+	para := &map[string]string{"type": confJson["tasktype"].(string), "name": confJson["rappername"].(string)}
+	resp, err := getRequest(confJson["taskServ"].(string)+"/sayhi", para)
 	if err != nil {
 		return err
 	}
@@ -236,12 +244,12 @@ func sayHiToServ() error {
 	if string(resp) != "OK" {
 		return fmt.Errorf("%s", resp)
 	}
-	
+
 	return nil
 }
 
 func sendBeat() error {
-	urlStr := fmt.Sprintf("%s/beat?ttype=%s&name=%s", confJson["taskServ"].(string), confJson["tasktype"].(string), confJson["rappername"].(string))
+	urlStr := fmt.Sprintf("%s/beat?type=%s&name=%s", confJson["taskServ"].(string), confJson["tasktype"].(string), confJson["rappername"].(string))
 	_, err := getRequest(urlStr, nil)
 	if err != nil {
 		return err
@@ -249,7 +257,7 @@ func sendBeat() error {
 
 	return nil
 }
-	
+
 func register(name string, one rapperType) {
 	if one == nil {
 		panic("register rapper nil")
@@ -276,7 +284,7 @@ func main() {
 	if err := sayHiToServ(); err != nil {
 		panic(err)
 	}
-	
+
 	for i := 0; i < int(confJson["flow"].(float64)); i++ {
 		one, err := NewRapper(confJson["tasktype"].(string))
 		if err != nil {

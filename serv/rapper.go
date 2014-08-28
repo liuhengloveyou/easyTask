@@ -60,7 +60,7 @@ func (this *Rapper) ReSet() []*TaskInfo {
 	for _, v := range this.tasks {
 		tasks = append(tasks, v)
 	}
-	this.tasks = nil
+	this.tasks = make(map[string]*TaskInfo)
 	
 	return tasks
 }

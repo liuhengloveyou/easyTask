@@ -72,9 +72,10 @@ func (this *getTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 			rst = append(rst, *tn)
 		}
 	}
-
+	
 	jsonByte, _ := json.Marshal(rst)
 	w.Write(jsonByte)
+	glog.Infoln("getask OK: ", string(jsonByte))
 	
 	return
 }

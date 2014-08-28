@@ -43,7 +43,10 @@ func (this *upTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("request param msg err"))
 		return
 	}
-	
+	if 1 == stati {
+		stati = 3
+	}
+
 	taskTypeOne, rapperOne := GetRapper(ttype, name)
 	if taskTypeOne == nil {
 		glog.Errorln("putask type err:", ttype)
@@ -58,6 +61,7 @@ func (this *upTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	taskTypeOne.upTask(rapperOne, int64(stati), tid, msg)
+	glog.Infoln("upTask: ", ttype, name, tid, stat, msg)
 		
 	w.Write([]byte("OK"))
 

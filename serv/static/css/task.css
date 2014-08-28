@@ -71,9 +71,9 @@ body{ width: 100%; min-width: 320px; font-size: 16px; font-family: Verdana;}
 .infoCon{line-height: 32px;border: 1px solid #ddd;padding-left: 15px;font-size: 14px;color: #666;}
 
 /* alert style */
-.modal{ position: fixed; left: 50%; width: 400px; margin-left: -200px; background: #fff; border-radius: 5px; box-shadow: 0 4px 8px; z-index: 2001; }
+.modal{ position: fixed; left: 25%; width: 80%; background: #fff; border-radius: 5px; box-shadow: 0 4px 8px; z-index: 2001; }
 .modal.fade{ -webkit-transition: all 0.3s linear; top: -90%;}
-.modal.fade.in{ top: 10%; opacity: 1;}
+.modal.fade.in{ top: 5%; opacity: 1;}
 
 .modal_header{ padding: 10px 15px; border-bottom: 1px solid #eee;}
 .modal_header h3{ line-height: 30px; font-size: 24px; float: left;}
