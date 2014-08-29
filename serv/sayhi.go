@@ -40,6 +40,7 @@ func (this *sayhiHandler) doGet (w http.ResponseWriter, r *http.Request) {
 
 	if rapperOne == nil {
 		taskTypeOne.rappers[name] = NewRapper()
+		taskTypeOne.rappers[name].Name = name
 	} else {
 		taskTypeOne.resetRapper(rapperOne)
 		rapperOne.Beat(true)

@@ -163,7 +163,6 @@ var task = (function($){
 	    info: '任务内容',
 	    stat: '任务状态',
 	    addTime: '添加时间',
-	    getTime: '获取时间',
 	    overTime: '完成时间',
 	    rapper: '工兵',
 	    client: '客户端',

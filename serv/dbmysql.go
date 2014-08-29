@@ -10,7 +10,6 @@ CREATE TABLE `tasks_demo` (
   `info` varchar(1024) NOT NULL,
   `stat` int(11) NOT NULL DEFAULT '0',
   `addTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `getTime` timestamp NULL DEFAULT '0000-00-00 00:00:00',
   `overTime` timestamp NULL DEFAULT '0000-00-00 00:00:00',
   `rapper` varchar(256) DEFAULT NULL,
   `client` varchar(256) DEFAULT NULL,
@@ -48,7 +47,7 @@ func dbInit() error {
 }
 
 func createDB(name string) error {
-	const TABLESQL = "CREATE TABLE `tasks_%s` (`id` int(11) NOT NULL AUTO_INCREMENT,`tid` varchar(33) NOT NULL,`rid` varchar(32) NOT NULL,`info` varchar(1024) NOT NULL,`stat` int(11) NOT NULL DEFAULT '0',`addTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,`getTime` timestamp NULL DEFAULT '0000-00-00 00:00:00',`overTime` timestamp NULL DEFAULT '0000-00-00 00:00:00',`rapper` varchar(256) DEFAULT NULL,`client` varchar(256) DEFAULT NULL,`remark` text,PRIMARY KEY (`id`),UNIQUE KEY `inx_tid` (`tid`)) ENGINE=InnoDB DEFAULT CHARSET=utf8"
+	const TABLESQL = "CREATE TABLE `tasks_%s` (`id` int(11) NOT NULL AUTO_INCREMENT,`tid` varchar(33) NOT NULL,`rid` varchar(32) NOT NULL,`info` varchar(1024) NOT NULL,`stat` int(11) NOT NULL DEFAULT '0',`addTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,`overTime` timestamp NULL DEFAULT '0000-00-00 00:00:00',`rapper` varchar(256) DEFAULT NULL,`client` varchar(256) DEFAULT NULL,`remark` text,PRIMARY KEY (`id`),UNIQUE KEY `inx_tid` (`tid`)) ENGINE=InnoDB DEFAULT CHARSET=utf8"
 
 	sqlStr := fmt.Sprintf(TABLESQL, name)
 	_, err := mysqlConn.Exec(sqlStr)
@@ -84,7 +83,7 @@ func upTask2DB(ttype, tid, rapper, msg string, stat int64) (int64, error) {
 }
 
 func upTaskStat2DB(ttype string, ids, ide int64) (int64, error) {
-	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=2, `getTime`=CURRENT_TIMESTAMP WHERE `id` >= ? AND `id` <= ? AND `stat`=1", ttype)
+	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=2 WHERE `id` >= ? AND `id` <= ? AND `stat`=1", ttype)
 	return doUpdate(sqlStr, ide, ids)
 }
 

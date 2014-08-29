@@ -192,7 +192,7 @@ func oneTask() *taskInfo {
 				resp, err := http.Get(urlStr)
 				if err != nil {
 					glog.Errorln(err, urlStr)
-					time.Sleep(3 * time.Second)
+					time.Sleep(1 * time.Second)
 					continue
 				}
 
@@ -200,7 +200,7 @@ func oneTask() *taskInfo {
 				resp.Body.Close()
 				if err != nil || resp.StatusCode != 200 {
 					glog.Errorln(err, resp.StatusCode, string(body))
-					time.Sleep(3 * time.Second)
+					time.Sleep(1 * time.Second)
 					continue
 				}
 
@@ -208,13 +208,13 @@ func oneTask() *taskInfo {
 				err = json.Unmarshal(body, &taskJson)
 				if err != nil {
 					glog.Errorln(err, string(body))
-					time.Sleep(3 * time.Second)
+					time.Sleep(1 * time.Second)
 					continue
 				}
 
 				if 1 > len(taskJson) {
 					glog.Errorln("gettask nil")
-					time.Sleep(3 * time.Second)
+					time.Sleep(1 * time.Second)
 					continue
 				}
 
