@@ -79,7 +79,7 @@ func newTask2DB(ttype, tid, rid, info string, stat int64) (int64, error) {
 }
 
 func upTask2DB(ttype, tid, rapper, msg string, stat int64) (int64, error) {
-	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=?, `rapper`=?, `overTime`=CURRENT_TIMESTAMP, `remark`=? WHERE `tid`=?", ttype)
+	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=?, `overTime`=CURRENT_TIMESTAMP, `rapper`=?, `remark`=? WHERE `tid`=?", ttype)
 	return doUpdate(sqlStr, stat, rapper, msg, tid)
 }
 

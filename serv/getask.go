@@ -32,36 +32,31 @@ func (this *getTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	}
 	inum, err := strconv.Atoi(num)
 	if err != nil {
+		this.writeErr(w, http.StatusBadRequest, []byte("num err"))
 		glog.Errorln("getask num ERR:", num)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("num err"))
 		return
 	}
 	if inum >= int(confJson["MaxTaskPerRapper"].(float64)) {
+		this.writeErr(w, http.StatusBadRequest, []byte("num to bag"))
 		glog.Errorln("getask num ERR:", num)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("num to bag"))
 		return
 	}
 	glog.Infoln("getask: ", name, ttype, num)
 
 	taskTypeOne, rapperOne := GetRapper(ttype, name)
 	if taskTypeOne == nil {
+		this.writeErr(w, http.StatusBadRequest, []byte("no such task type"))
 		glog.Errorln("getask type nil:", ttype)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("no such task type"))
 		return
 	} else if rapperOne == nil {
+		this.writeErr(w, http.StatusBadRequest, []byte("no such rapper"))
 		glog.Errorln("getask rapper nil:", ttype, name)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("no such rapper"))
 		return
 	}
 
 	if rapperOne.TaskSize() > int(confJson["MaxTaskPerRapper"].(float64)) {
+		this.writeErr(w, http.StatusBadRequest, []byte("to much tasks"))
 		glog.Errorln("getask to mach ERR:", rapperOne.TaskSize, int(confJson["MaxTaskPerRapper"].(float64)))
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("to much tasks"))
 		return
 	}
 	
@@ -78,4 +73,9 @@ func (this *getTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	glog.Infoln("getask OK: ", string(jsonByte))
 	
 	return
+}
+
+func (this *getTaskHandler) writeErr(w http.ResponseWriter, statCode int, body []byte) {
+	w.WriteHeader(statCode)
+	w.Write(body)
 }

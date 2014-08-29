@@ -25,22 +25,19 @@ func (this *upTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	ttype, name, tid, stat, msg := r.FormValue("type"), r.FormValue("name"), r.FormValue("tid"), r.FormValue("stat"), r.FormValue("msg")
 	if "" == ttype || "" == name || "" == stat || "" == tid {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(USAGE))
+		this.writeErr(w, http.StatusBadRequest, []byte(USAGE))
 		return
 	}
 
 	stati, err := strconv.Atoi(stat)
 	if nil != err || (stati != -1 && stati != 1) {
+		this.writeErr(w, http.StatusBadRequest, []byte("request param stat err"))
 		glog.Infoln("stat ERR: ", stat)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("request param stat err"))
 		return
 	}
 	if -1 == stati && "" == msg {
-		glog.Infoln("msg nil: ", stat)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("request param msg err"))
+		this.writeErr(w, http.StatusBadRequest, []byte("request param msg err"))
+		glog.Errorln("msg nil: ", stat)
 		return
 	}
 	if 1 == stati {
@@ -49,14 +46,12 @@ func (this *upTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 
 	taskTypeOne, rapperOne := GetRapper(ttype, name)
 	if taskTypeOne == nil {
+		this.writeErr(w, http.StatusBadRequest, []byte("no such task type"))
 		glog.Errorln("putask type err:", ttype)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("no such task type"))
 		return
 	} else if rapperOne == nil {
+		this.writeErr(w, http.StatusBadRequest, []byte("no such rapper"))
 		glog.Errorln("getask rapper nil:", ttype, name)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("no such rapper"))
 		return
 	}
 	
@@ -68,3 +63,7 @@ func (this *upTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func (this *upTaskHandler) writeErr(w http.ResponseWriter, statCode int, body []byte) {
+	w.WriteHeader(statCode)
+	w.Write(body)
+}

@@ -34,17 +34,15 @@ func (this *putTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 
 	taskTypeOne, _ := GetRapper(ttype, "")
 	if taskTypeOne == nil {
+		this.writeErr(w, http.StatusBadRequest, []byte("no such task type"))
 		glog.Errorln("putask type err:", ttype)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("no such task type"))
 		return
 	}
 
 	inSize, backSize := taskTypeOne.BuffSize()
 	if inSize >= int64(confJson["taskBuffSize"].(float64)) {
+		this.writeErr(w, http.StatusInternalServerError, []byte("server to busy"))
 		glog.Errorln("server to busy err:", inSize, backSize, int(confJson["taskBuffSize"].(float64)))
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("server to busy"))
 		return
 	}
 
@@ -63,4 +61,9 @@ func (this *putTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(taskid))
 
 	return
+}
+
+func (this *putTaskHandler) writeErr(w http.ResponseWriter, statCode int, body []byte) {
+	w.WriteHeader(statCode)
+	w.Write(body)
 }

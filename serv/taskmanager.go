@@ -82,13 +82,14 @@ func rapperCleaner() {
 		time.Sleep(1 * time.Second)
 
 		for k, v := range TaskTypes {
-			for k1, v1 := range (*v).rappers {
+			for k1, v1 := range v.rappers {
 				if v1.Beat(false) < 0 {
-					continue // 已经死了就不要打扰人家
+					delete(v.rappers, k1) // 已经死了, 删之
+					continue
 				}
 				if (time.Now().Unix() - v1.Beat(false)) > int64(confJson["RapperBeatOut"].(float64)) {
-					v.resetRapper(v1)
-					v1.Kill()
+					v.resetRapper(v1) 
+					v1.Kill() 
 					glog.Warningln("KILL RAPPER: ", k, k1)
 				}
 			}
