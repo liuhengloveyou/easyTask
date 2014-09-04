@@ -1,4 +1,4 @@
-package main
+package controllers
 
 import (
 	"crypto/md5"
@@ -6,12 +6,15 @@ import (
 	"io"
 	"net/http"
 
+	. "easyTask/serv/models"
+	. "easyTask/serv/common"
+	
 	"github.com/golang/glog"
 )
 
-type putTaskHandler struct{}
+type PutTaskHandler struct{}
 
-func (this *putTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (this *PutTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		this.doGet(w, r)
 	} else {
@@ -21,7 +24,7 @@ func (this *putTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (this *putTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
+func (this *PutTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	const USAGE = "GET /putask?type=typename&rid=recordid&info=taskinfo"
 
 	r.ParseForm()
@@ -40,14 +43,14 @@ func (this *putTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	inSize, backSize := taskTypeOne.BuffSize()
-	if inSize >= int64(confJson["taskBuffSize"].(float64)) {
+	if inSize >= int64(ConfJson["taskBuffSize"].(float64)) {
 		this.writeErr(w, http.StatusInternalServerError, []byte("server to busy"))
-		glog.Errorln("server to busy err:", inSize, backSize, int(confJson["taskBuffSize"].(float64)))
+		glog.Errorln("server to busy err:", inSize, backSize, int(ConfJson["taskBuffSize"].(float64)))
 		return
 	}
 
 	var stat int64 = 1
-	if backSize < int64(confJson["taskBuffSize"].(float64)) && len(taskTypeOne.rappers) > 0 {
+	if backSize < int64(ConfJson["taskBuffSize"].(float64)) && taskTypeOne.RapperNum() > 0 {
 		stat = 2
 	}
 	
@@ -55,7 +58,7 @@ func (this *putTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(m, info)
 	taskid := fmt.Sprintf("%x", m.Sum(nil))
 	
-	taskTypeOne.newTask(&TaskInfo{Tid: taskid, Rid: rid, Info: info}, stat)
+	taskTypeOne.NewTask(&TaskInfo{Tid: taskid, Rid: rid, Info: info}, stat)
 
 	glog.Errorf("DATA putTask: %s %s %s %s", taskid, ttype, rid, info)
 	w.Write([]byte(taskid))
@@ -63,7 +66,7 @@ func (this *putTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (this *putTaskHandler) writeErr(w http.ResponseWriter, statCode int, body []byte) {
+func (this *PutTaskHandler) writeErr(w http.ResponseWriter, statCode int, body []byte) {
 	w.WriteHeader(statCode)
 	w.Write(body)
 }

@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
 	"sync"
@@ -12,8 +12,10 @@ type Rapper struct {
 	beat int64
 }
 
-func NewRapper() *Rapper {
-	return new(Rapper).Init()
+func NewRapper(name string) *Rapper {
+	one := new(Rapper).Init()
+	one.Name = name
+	return one
 }
 
 func (this *Rapper) Init() *Rapper {

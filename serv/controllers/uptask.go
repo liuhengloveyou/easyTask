@@ -1,15 +1,17 @@
-package main
+package controllers
 
 import (
 	"strconv"
 	"net/http"
 
+	. "easyTask/serv/models"
+	
 	"github.com/golang/glog"
 )
 
-type upTaskHandler struct {}
+type UpTaskHandler struct {}
 
-func (this *upTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (this *UpTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		this.doGet(w, r)
 	} else {
@@ -19,7 +21,7 @@ func (this *upTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (this *upTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
+func (this *UpTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	const USAGE = "GET /uptask?type=typename&name=rappername&tid=taskid&stat=1|-1&msg=errormsg"
 	
 	r.ParseForm()
@@ -55,7 +57,7 @@ func (this *upTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	taskTypeOne.upTask(rapperOne, int64(stati), tid, msg)
+	taskTypeOne.UpTask(rapperOne, int64(stati), tid, msg)
 	glog.Infoln("upTask: ", ttype, name, tid, stat, msg)
 		
 	w.Write([]byte("OK"))
@@ -63,7 +65,7 @@ func (this *upTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (this *upTaskHandler) writeErr(w http.ResponseWriter, statCode int, body []byte) {
+func (this *UpTaskHandler) writeErr(w http.ResponseWriter, statCode int, body []byte) {
 	w.WriteHeader(statCode)
 	w.Write(body)
 }

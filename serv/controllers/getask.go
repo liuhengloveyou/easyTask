@@ -1,16 +1,19 @@
-package main
+package controllers
 
 import (
 	"strconv"
 	"net/http"
 	"encoding/json"
+
+	. "easyTask/serv/models"
+	. "easyTask/serv/common"
 	
 	"github.com/golang/glog"
 )
 
-type getTaskHandler struct {}
+type GetTaskHandler struct {}
 
-func (this *getTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (this *GetTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		this.doGet(w, r)
 	} else {
@@ -20,7 +23,7 @@ func (this *getTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (this *getTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
+func (this *GetTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	const USAGE = "GET /getask?type=typename&name=rappername&num=123"
 	
 	r.ParseForm()
@@ -36,7 +39,7 @@ func (this *getTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		glog.Errorln("getask num ERR:", num)
 		return
 	}
-	if inum >= int(confJson["MaxTaskPerRapper"].(float64)) {
+	if inum >= int(ConfJson["MaxTaskPerRapper"].(float64)) {
 		this.writeErr(w, http.StatusBadRequest, []byte("num to bag"))
 		glog.Errorln("getask num ERR:", num)
 		return
@@ -54,14 +57,14 @@ func (this *getTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rapperOne.TaskSize() > int(confJson["MaxTaskPerRapper"].(float64)) {
+	if rapperOne.TaskSize() > int(ConfJson["MaxTaskPerRapper"].(float64)) {
 		this.writeErr(w, http.StatusBadRequest, []byte("to much tasks"))
-		glog.Errorln("getask to mach ERR:", rapperOne.TaskSize, int(confJson["MaxTaskPerRapper"].(float64)))
+		glog.Errorln("getask to mach ERR:", rapperOne.TaskSize, int(ConfJson["MaxTaskPerRapper"].(float64)))
 		return
 	}
 	
 	rst := make([]TaskInfo, 0)
-	tasks := taskTypeOne.distTask(rapperOne, inum)
+	tasks := taskTypeOne.DistTask(rapperOne, inum)
 	for _, tn := range tasks {
 		if tn != nil {
 			rst = append(rst, *tn)
@@ -75,7 +78,7 @@ func (this *getTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (this *getTaskHandler) writeErr(w http.ResponseWriter, statCode int, body []byte) {
+func (this *GetTaskHandler) writeErr(w http.ResponseWriter, statCode int, body []byte) {
 	w.WriteHeader(statCode)
 	w.Write(body)
 }

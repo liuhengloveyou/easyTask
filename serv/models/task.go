@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
 	"container/list"
@@ -6,11 +6,20 @@ import (
 	"sync"
 	"time"
 
+	. "easyTask/serv/common"
+	
 	"github.com/golang/glog"
 )
 
+
+type TaskInfo struct {
+	Tid  string // 任务ID
+	Rid  string // 记录ID
+	Info string // 任务内容
+}
+
 type TaskType struct {
-	name     string
+	Name     string
 	rappers  map[string]*Rapper
 	taskChan chan *TaskInfo
 
@@ -32,16 +41,20 @@ func NewTaskType() *TaskType {
 }
 
 func (this *TaskType) Init() *TaskType {
-	this.name = ""
+	this.Name = ""
 	this.rappers = make(map[string]*Rapper)
-	this.taskChan = make(chan *TaskInfo, int64(confJson["MaxTaskPerRapper"].(float64))*2)
+	this.taskChan = make(chan *TaskInfo, int64(ConfJson["MaxTaskPerRapper"].(float64))*2)
 	this.buff[0] = list.New()
 	this.buff[1] = list.New()
 
 	return this
 }
 
-func (this *TaskType) resetRapper(one *Rapper) {
+func (this *TaskType) AddRapper(name string, one *Rapper) {
+	this.rappers[name] = one
+}
+
+func (this *TaskType) ResetRapper(one *Rapper) {
 	tasks := one.ReSet()
 
 	this.lock[0].Lock()
@@ -54,7 +67,7 @@ func (this *TaskType) resetRapper(one *Rapper) {
 	return
 }
 
-func (this *TaskType) newTask(task *TaskInfo, stat int64) {
+func (this *TaskType) NewTask(task *TaskInfo, stat int64) {
 	this.once[1].Do(func() {
 		go this.realUpTask()
 	})
@@ -65,7 +78,7 @@ func (this *TaskType) newTask(task *TaskInfo, stat int64) {
 	this.lock[1].Unlock()
 }
 
-func (this *TaskType) upTask(one *Rapper, stat int64, tid, msg string) {
+func (this *TaskType) UpTask(one *Rapper, stat int64, tid, msg string) {
 	this.once[1].Do(func() {
 		go this.realUpTask()
 	})
@@ -88,7 +101,7 @@ func (this *TaskType) realUpTask() {
 
 		t := one.Value.(*TaskInfo2DB)
 		if t.sign == 'A' {
-			_, err := newTask2DB(this.name, t.taskInfo.Tid, t.taskInfo.Rid, t.taskInfo.Info, t.stat)
+			_, err := newTask2DB(this.Name, t.taskInfo.Tid, t.taskInfo.Rid, t.taskInfo.Info, t.stat)
 			if err != nil {
 				glog.Errorln(err)
 			} else if t.stat == 2 {
@@ -97,7 +110,7 @@ func (this *TaskType) realUpTask() {
 				this.lock[0].Unlock()
 			}
 		} else if t.sign == 'U' {
-			_, err := upTask2DB(this.name, t.taskInfo.Tid, t.rapper, t.msg, t.stat)
+			_, err := upTask2DB(this.Name, t.taskInfo.Tid, t.rapper, t.msg, t.stat)
 			if err != nil {
 				glog.Errorln(err)
 			}
@@ -109,7 +122,7 @@ func (this *TaskType) realUpTask() {
 	}
 }
 
-func (this *TaskType) distTask(one *Rapper, num int) []*TaskInfo {
+func (this *TaskType) DistTask(one *Rapper, num int) []*TaskInfo {
 	this.once[0].Do(func() {
 		go this.realDistTask()
 	})
@@ -136,7 +149,7 @@ func (this *TaskType) realDistTask() {
 			continue
 		}
 
-		tasks, err := getTasks(this.name, int64(confJson["MaxTaskPerRapper"].(float64))*2)
+		tasks, err := getTasks(this.Name, int64(ConfJson["MaxTaskPerRapper"].(float64))*2)
 		if err != nil {
 			glog.Errorln(err)
 		}
@@ -159,12 +172,27 @@ func (this *TaskType) realDistTask() {
 		// 更新任务状态
 		idsi, _ := strconv.ParseInt(ids, 10, 64)
 		idei, _ := strconv.ParseInt(ide, 10, 64)
-		if _, err := upTaskStat2DB(this.name, idsi, idei); err != nil {
+		if _, err := upTaskStat2DB(this.Name, idsi, idei); err != nil {
 			glog.Errorln(err)
 		}
 	}
 }
 
-func (this *TaskType) BuffSize() (int64, int64) {
-	return int64(this.buff[1].Len()), int64(this.buff[0].Len())
+func (this *TaskType) BuffSize() (inSize int64, outSize int64) {
+	outSize, inSize = int64(this.buff[0].Len()), int64(this.buff[1].Len())
+	return
+}
+
+func (this *TaskType) RapperNum() (num int64) {
+	num = int64(len(this.rappers))
+	return
+}
+
+func (this *TaskType) RapperNames() []string {
+	var names []string
+	for k, _ := range this.rappers {
+		names = append(names, k)
+	}
+
+	return names
 }

@@ -24,3 +24,26 @@ easyTask
 
 ##### 6. 心跳. 每个工兵每5秒向服务器发一个心跳包
     GET /beat?type=任务类型名&name=工兵名字
+
+数据库:
+------
+	CREATE DATABASE IF NOT EXISTS `taskManager` DEFAULT CHARACTER SET utf8;
+	
+	CREATE TABLE `tasks_demo` (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+		`tid` varchar(33) NOT NULL,
+		`rid` varchar(32) NOT NULL,
+		`info` varchar(1024) NOT NULL,
+		`stat` int(11) NOT NULL DEFAULT '0', -- 1 = 新任务; 2 = 正在处理; 3 = 处理成功; -1 = 处理出错
+		`addTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		`overTime` timestamp NULL DEFAULT '0000-00-00 00:00:00',
+		`rapper` varchar(256) DEFAULT NULL,
+		`client` varchar(256) DEFAULT NULL,
+		`remark` text,
+		PRIMARY KEY (`id`),
+		UNIQUE KEY `inx_tid` (`tid`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+

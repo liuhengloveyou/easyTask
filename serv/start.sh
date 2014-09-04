@@ -1,5 +1,6 @@
 #!/bin/bash
 
-./serv -logtostderr=true
+mkdir ./logs &>/dev/null
+nohup ./serv -log_dir="./logs" &>/dev/null &
 
-# nohup ./serv -log_dir="./logs" &>/dev/null &
+# ./serv -logtostderr=true

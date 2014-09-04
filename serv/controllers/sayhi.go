@@ -1,14 +1,16 @@
-package main
+package controllers
 
 import (
 	"net/http"
 
+	. "easyTask/serv/models"
+	
 	"github.com/golang/glog"
 )
 
-type sayhiHandler struct {}
+type SayhiHandler struct {}
 
-func (this *sayhiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (this *SayhiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		this.doGet(w, r)
 	} else {
@@ -18,7 +20,7 @@ func (this *sayhiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (this *sayhiHandler) doGet (w http.ResponseWriter, r *http.Request) {
+func (this *SayhiHandler) doGet (w http.ResponseWriter, r *http.Request) {
 	const USAGE = "GET /sayhi?type=typename&name=rappername"
 	
 	r.ParseForm()
@@ -39,10 +41,9 @@ func (this *sayhiHandler) doGet (w http.ResponseWriter, r *http.Request) {
 	}
 
 	if rapperOne == nil {
-		taskTypeOne.rappers[name] = NewRapper()
-		taskTypeOne.rappers[name].Name = name
+		taskTypeOne.AddRapper(name, NewRapper(name))
 	} else {
-		taskTypeOne.resetRapper(rapperOne)
+		taskTypeOne.ResetRapper(rapperOne)
 		rapperOne.Beat(true)
 	}
 
