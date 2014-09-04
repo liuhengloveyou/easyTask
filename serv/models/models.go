@@ -53,7 +53,7 @@ func GetRapper(ttype, name string) (taskType *TaskType, rapper *Rapper) {
 	return
 }
 
-
+// 清理太久不活动的工兵
 func RapperCleaner() {
 	for {
 		time.Sleep(1 * time.Second)

@@ -7,13 +7,14 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// mysql 操作封装
 type DBmysql struct {
-	Url string
-	conn       *sql.DB
+	Url  string
+	conn *sql.DB
 }
 
 func (this *DBmysql) Init(url string) (*DBmysql, error) {
-	err := fmt.Errorf("Init mysql connection witch nil url.")
+	err := fmt.Errorf("connection mysql witch nil url.")
 	if url == "" {
 		return nil, err
 	}
@@ -30,7 +31,7 @@ func (this *DBmysql) Query(sqlStr string, args ...interface{}) (rst []map[string
 		stmt *sql.Stmt = nil
 		rows *sql.Rows = nil
 	)
-	
+
 	stmt, err = this.conn.Prepare(sqlStr)
 	if err != nil {
 		return
@@ -42,7 +43,7 @@ func (this *DBmysql) Query(sqlStr string, args ...interface{}) (rst []map[string
 		return
 	}
 	defer rows.Close()
-	
+
 	var cols []string
 	cols, err = rows.Columns()
 	if err != nil {

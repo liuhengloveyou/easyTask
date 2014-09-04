@@ -183,9 +183,8 @@ func (this *TaskType) BuffSize() (inSize int64, outSize int64) {
 	return
 }
 
-func (this *TaskType) RapperNum() (num int64) {
-	num = int64(len(this.rappers))
-	return
+func (this *TaskType) RapperNum() int64 {
+	return int64(len(this.rappers))
 }
 
 func (this *TaskType) RapperNames() []string {
