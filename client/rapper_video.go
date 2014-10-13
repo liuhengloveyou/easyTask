@@ -239,7 +239,8 @@ func (this *rapperVideo) updateTask() {
 		glog.Infoln("callbackTask:", oneVideoTask)
 		_, err := getRequest(oneVideoTask.Callback, para)
 		if err != nil {
-			oneVideoTask.err = fmt.Errorf("callbackERR: %v", err)
+			oldErr := oneVideoTask.err.Error()
+			oneVideoTask.err = fmt.Errorf("%v\ncallbackERR: %v", oldErr, err)
 			glog.Errorln("updateTask callbackERR:", oneVideoTask, err)
 		}
 		
