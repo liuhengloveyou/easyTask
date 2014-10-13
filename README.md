@@ -1,4 +1,4 @@
-easyTask
+easyTask4
 ========
 
 简单任务分发系统
@@ -30,7 +30,22 @@ easyTask
 ##### 6. 心跳. 每个工兵每5秒向服务器发一个心跳包
     GET /beat?type=任务类型名&name=工兵名字
     成功返回"OK";出错返回错误信息串
-    
+
+##### 7. 回调参数格式
+      GET http://callback.com/callback?type=任务类型&tid=任务ID&rid=记录ID&msg=错误信息
+      
+##### 8. 其它
+    成功或失败状态依HTTP状态码为准, 200成功其实失败.
+
+音视频转码任务:
+--------------
+
+##### 1. 添加描述格式
+    BASE64({"fid":"文件ID", "flen":文件长度, "type":"文件类型", "url":"http://文件下载URL", "nurl":"http://转码后文件上传URL", "callback":"http://任务处理结果回调"})
+
+##### 2. 回调参数格式
+      GET http://callback.com/callback?type=任务类型&tid=任务ID&rid=记录ID&msg=错误信息&nfid=转码后文件ID&img=转码后缩略图文件ID
+
 数据库:
 ------
 	CREATE DATABASE IF NOT EXISTS `taskManager` DEFAULT CHARACTER SET utf8;
