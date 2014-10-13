@@ -136,7 +136,7 @@ func (this *rapperVideo) transcode() {
 	END: // 转码完成
 		if oneVideoTask.err == nil {
 			glog.Infoln("transcodeOK: ", oneVideoTask)
-			this.toUpdate <- oneVideoTask
+			this.toUpload <- oneVideoTask
 		} else {
 			glog.Errorf("transcodeERR: %v. '%v'", oneVideoTask, oneVideoTask.err)
 			this.toUpdate <- oneVideoTask
@@ -228,15 +228,18 @@ func (this *rapperVideo) updateTask() {
 		glog.Infoln("updateTask:", oneVideoTask)
 
 		// 回调
-		para := &map[string]string{"type": confJson["tasktype"].(string), "tid": oneVideoTask.Tid, "rid": oneVideoTask.Rid, "nfid": oneVideoTask.nfid}
-		if oneVideoTask.nimg != "" {
-			(*para)["img"] = oneVideoTask.nimg
-		} 
+		para := &map[string]string{"type": confJson["tasktype"].(string), "tid": oneVideoTask.Tid, "rid": oneVideoTask.Rid}
 		if oneVideoTask.err != nil {
 			(*para)["msg"] = base64.StdEncoding.EncodeToString([]byte(oneVideoTask.err.Error()))
 		}
+		if oneVideoTask.nimg != "" {
+			(*para)["img"] = oneVideoTask.nimg
+		}
+		if oneVideoTask.nfid != "" {
+			(*para)["nfid"] = oneVideoTask.nfid
+		} 
 
-		glog.Infoln("callbackTask:", oneVideoTask)
+		glog.Infof("callbackTask: %v; para: %v", oneVideoTask, *para)
 		_, err := getRequest(oneVideoTask.Callback, para)
 		if err != nil {
 			oldErr := oneVideoTask.err.Error()
