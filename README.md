@@ -49,7 +49,7 @@ easyTask4
 
 数据库:
 ------
-	CREATE DATABASE IF NOT EXISTS `taskManager` DEFAULT CHARACTER SET utf8;
+	CREATE DATABASE IF NOT EXISTS `taskmanager` DEFAULT CHARACTER SET utf8;
 	
 	CREATE TABLE `tasks_demo` (
 		`id` int(11) NOT NULL AUTO_INCREMENT,

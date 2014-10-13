@@ -22,7 +22,7 @@ func ShowTables() ([]string, error) {
 
 	rst := make([]string, len(tables))
 	for n, tn := range tables {
-		rst[n] = tn["Tables_in_taskManager"]
+		rst[n] = tn["Tables_in_taskmanager"]
 	}
 
 	return rst, nil
