@@ -90,8 +90,8 @@ func (this *rapperVideo) run() {
 		// 下载文件
 		err = download(oneVideoTask.Url, confJson["tmpdir"].(string)+oneVideoTask.Tid)
 		if err != nil {
-			oneVideoTask.err = err
-			glog.Errorln(oneVideoTask, err)
+			oneVideoTask.err = fmt.Errorf("downloadERR: %s", err.Error())
+			glog.Errorln(oneVideoTask)
 		}
 
 	END: // 下载完成

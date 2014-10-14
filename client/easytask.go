@@ -64,7 +64,11 @@ func download(url, fn string) error {
 	}
 	defer f.Close()
 
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Set("Connection", "close")
+	req.Header.Set("User-Agent", "Mozilla/5.0")
+	req.Header.Set("Referer", "")
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
