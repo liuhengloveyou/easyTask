@@ -13,7 +13,8 @@ import (
 	"runtime"
 	"sync"
 	"time"
-
+	"strings"
+	
 	"github.com/golang/glog"
 )
 
@@ -107,7 +108,7 @@ func upload(url, fn string, para *map[string]string) ([]byte, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	defer writer.Close()
-
+	
 	if para != nil {
 		for k, v := range *para {
 			writer.WriteField(k, v)
@@ -157,9 +158,9 @@ func getRequest(url string, para *map[string]string) ([]byte, error) {
 	}
 
 	if para != nil {
-		url += "?_=_"
+		url += "?"
 		for k, v := range *para {
-			url += "&" + k + "=" + v
+			url +=  strings.Trim(k, "\n ") + "=" + strings.Trim(v, "\n ") + "&"
 		}
 	}
 
