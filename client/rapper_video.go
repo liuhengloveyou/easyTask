@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -152,6 +153,9 @@ func (this *rapperVideo) uploadMp4() {
 			jfp         *os.File
 			para        *map[string]string
 			resp, jresp []byte
+
+			urlOpara, kv []string
+			one          string
 		)
 
 		// 取一个任务
@@ -173,6 +177,16 @@ func (this *rapperVideo) uploadMp4() {
 			goto END
 		}
 		para = &map[string]string{"flen": fmt.Sprintf("%d", fi.Size())}
+		// para from get to post
+		urlOpara = strings.Split(oneVideoTask.Nurl, "?")
+		if len(urlOpara) == 2 {
+			for _, one = range strings.Split(urlOpara[1], "&") {
+				kv = strings.Split(one, "=")
+				if len(kv) == 2 {
+					(*para)[kv[0]] = kv[1]
+				}
+			}
+		}
 
 		glog.Infoln("uploadmp4:", oneVideoTask)
 		resp, err = upload(oneVideoTask.Nurl, fn+".mp4", para)
@@ -195,8 +209,8 @@ func (this *rapperVideo) uploadMp4() {
 			glog.Errorln(oneVideoTask, err)
 			goto END
 		}
-		(*para)["flen"] = fmt.Sprintf("%d", fi.Size())
-		
+		para = &map[string]string{"flen": fmt.Sprintf("%d", fi.Size())}
+
 		glog.Infoln("uploadjpg:", oneVideoTask)
 		jresp, err = upload(oneVideoTask.Nurl, fn+".jpg", para)
 		if err != nil {
