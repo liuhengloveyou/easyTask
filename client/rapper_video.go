@@ -75,24 +75,21 @@ func (this *rapperVideo) run() {
 
 		taskInfo, err := base64.StdEncoding.DecodeString(oneTask.Info)
 		if err != nil {
-			oneVideoTask.err = fmt.Errorf("downloadERR: %v", err)
-			glog.Errorln("downloadERR:", err, oneTask)
+			oneVideoTask.err = fmt.Errorf("downloadERR: %s", err.Error())
 			goto END
 		}
 
 		err = json.Unmarshal(taskInfo, oneVideoTask)
 		if err != nil {
-			oneVideoTask.err = fmt.Errorf("downloadERR: %v", err)
-			glog.Errorln("downloadERR:", err, oneTask)
+			oneVideoTask.err = fmt.Errorf("downloadERR: %s", err.Error())
 			goto END
 		}
-		glog.Infoln("download oneTask OK: ", oneVideoTask)
 
 		// 下载文件
+		glog.Infoln("download oneTask begin: ", oneVideoTask)
 		err = download(oneVideoTask.Url, confJson["tmpdir"].(string)+oneVideoTask.Tid)
 		if err != nil {
 			oneVideoTask.err = fmt.Errorf("downloadERR: %s", err.Error())
-			glog.Errorln(oneVideoTask)
 		}
 
 	END: // 下载完成
@@ -100,7 +97,7 @@ func (this *rapperVideo) run() {
 			glog.Infoln("downloadOK: ", oneVideoTask)
 			this.toTranscode <- oneVideoTask
 		} else {
-			glog.Errorf("downloadERR: %v, '%v'", oneVideoTask, oneVideoTask.err)
+			glog.Errorln("downloadERR:", oneVideoTask, oneVideoTask.err.Error())
 			this.toUpdate <- oneVideoTask
 		}
 	}
@@ -122,8 +119,7 @@ func (this *rapperVideo) transcode() {
 		glog.Infoln("transcode:", oneVideoTask, transcodeCmd)
 		_, err := exec.Command("/bin/bash", "-c", transcodeCmd).Output()
 		if err != nil {
-			oneVideoTask.err = fmt.Errorf("transcodeERR: %v", err)
-			glog.Errorln("transcodeERR:", err, transcodeCmd)
+			oneVideoTask.err = fmt.Errorf("transcodeERR: %s", err.Error())
 			goto END
 		}
 
@@ -139,7 +135,7 @@ func (this *rapperVideo) transcode() {
 			glog.Infoln("transcodeOK: ", oneVideoTask)
 			this.toUpload <- oneVideoTask
 		} else {
-			glog.Errorf("transcodeERR: %v. '%v'", oneVideoTask, oneVideoTask.err)
+			glog.Errorf("transcodeERR: %v. '%s'", oneVideoTask, oneVideoTask.err.Error())
 			this.toUpdate <- oneVideoTask
 		}
 	}
@@ -165,15 +161,13 @@ func (this *rapperVideo) uploadMp4() {
 		// 上传新视频
 		fp, err := os.Open(fn + ".mp4")
 		if err != nil {
-			oneVideoTask.err = fmt.Errorf("uploadFp4ERR:%v", err)
-			glog.Errorln("uploadFp4ERR:", oneVideoTask, err)
+			oneVideoTask.err = fmt.Errorf("uploadERR: %s", err.Error())
 			goto END
 
 		}
 		fi, err = fp.Stat()
 		if err != nil {
-			oneVideoTask.err = fmt.Errorf("uploadFp4ERR:%v", err)
-			glog.Errorln("uploadFp4ERR:", oneVideoTask, err)
+			oneVideoTask.err = fmt.Errorf("uploadERR: %s", err.Error())
 			goto END
 		}
 		para = &map[string]string{"flen": fmt.Sprintf("%d", fi.Size())}
@@ -188,11 +182,10 @@ func (this *rapperVideo) uploadMp4() {
 			}
 		}
 
-		glog.Infoln("uploadmp4:", oneVideoTask)
+		glog.Infoln("uploadmp4: ", oneVideoTask)
 		resp, err = upload(oneVideoTask.Nurl, fn+".mp4", para)
 		if err != nil {
-			oneVideoTask.err = fmt.Errorf("uploadFp4ERR:%v", err)
-			glog.Errorln("uploadFp4ERR:", oneVideoTask, err)
+			oneVideoTask.err = fmt.Errorf("uploadERR: %s", err.Error())
 			goto END
 		}
 		oneVideoTask.nfid = string(resp)
@@ -211,10 +204,10 @@ func (this *rapperVideo) uploadMp4() {
 		}
 		para = &map[string]string{"flen": fmt.Sprintf("%d", fi.Size())}
 
-		glog.Infoln("uploadjpg:", oneVideoTask)
+		glog.Infoln("uploadjpg: ", oneVideoTask)
 		jresp, err = upload(oneVideoTask.Nurl, fn+".jpg", para)
 		if err != nil {
-			glog.Errorln(err, oneVideoTask)
+			glog.Errorln(oneVideoTask, err)
 			goto END
 		}
 		oneVideoTask.nimg = string(jresp)
@@ -229,7 +222,7 @@ func (this *rapperVideo) uploadMp4() {
 		if oneVideoTask.err == nil {
 			glog.Infoln("uploadOK: ", oneVideoTask)
 		} else {
-			glog.Errorf("uploadERR: %v '%v'", oneVideoTask, oneVideoTask.err)
+			glog.Errorf("uploadERR: %v '%s'", oneVideoTask, oneVideoTask.err.Error())
 		}
 		this.toUpdate <- oneVideoTask
 	}
@@ -239,8 +232,7 @@ func (this *rapperVideo) updateTask() {
 	for {
 		// 取一个任务
 		oneVideoTask := <-this.toUpdate
-		glog.Infoln("updateTask:", oneVideoTask)
-
+		
 		// 回调
 		para := &map[string]string{"type": confJson["tasktype"].(string), "tid": oneVideoTask.Tid, "rid": oneVideoTask.Rid}
 		if oneVideoTask.err != nil {
