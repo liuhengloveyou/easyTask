@@ -70,17 +70,14 @@ func (this *rapperVideo) run() {
 	go this.updateTask()
 
 	for {
-		oneVideoTask := &videoTaskInfo{}
-
 		// 取一个任务
 		oneTask := oneTask()
-		glog.Infoln("download oneTask: ", this.no, oneTask.Tid, oneTask)
-		oneVideoTask.Tid = oneTask.Tid
-		oneVideoTask.Rid = oneTask.Rid
+		oneVideoTask := &videoTaskInfo{Tid: oneTask.Tid, Rid: oneTask.Rid}
 		if oneVideoTask.Tid == "" || oneVideoTask.Rid == "" {
 			glog.Errorln("taskERR: ", oneTask)
 			continue
 		}
+		glog.Infoln("deal oneTask: ", this.no, oneTask)
 
 		taskInfo, err := base64.StdEncoding.DecodeString(oneTask.Info)
 		if err != nil {
@@ -95,7 +92,7 @@ func (this *rapperVideo) run() {
 		}
 
 		// 下载文件
-		glog.Infoln("download oneTask begin: ", oneVideoTask)
+		glog.Infoln("download oneTask begin: ", oneVideoTask.toString())
 		err = download(oneVideoTask.Url, confJson["tmpdir"].(string)+oneVideoTask.Tid)
 		if err != nil {
 			oneVideoTask.err = fmt.Errorf("downloadERR: %s", err.Error())
@@ -119,8 +116,8 @@ func (this *rapperVideo) transcode() {
 	for {
 		// 取一个任务
 		oneVideoTask := <-this.toTranscode
-		fn := confJson["tmpdir"].(string) + oneVideoTask.Tid
 
+		fn := confJson["tmpdir"].(string) + oneVideoTask.Tid
 		transcodeCmd := fmt.Sprintf(TRANFMT, fn, fn)
 		thumbnailCmd := fmt.Sprintf(THUMFMT, fn, fn)
 
@@ -144,7 +141,7 @@ func (this *rapperVideo) transcode() {
 			glog.Warningln("transcodeOK: ", oneVideoTask.toString())
 			this.toUpload <- oneVideoTask
 		} else {
-			glog.Errorf("transcodeERR: %v. '%s'", oneVideoTask.toString())
+			glog.Errorln("transcodeERR: ", oneVideoTask.toString())
 			this.toUpdate <- oneVideoTask
 		}
 	}
@@ -152,47 +149,33 @@ func (this *rapperVideo) transcode() {
 
 func (this *rapperVideo) uploadMp4() {
 	for {
-		var (
-			err         error
-			fi          os.FileInfo
-			jfp         *os.File
-			para        *map[string]string
-			resp, jresp []byte
-
-			urlOpara, kv []string
-			one          string
-		)
+		var resp, jresp []byte
 
 		// 取一个任务
 		oneVideoTask := <-this.toUpload
-		fn := confJson["tmpdir"].(string) + oneVideoTask.Tid
 
-		// 上传新视频
-		fp, err := os.Open(fn + ".mp4")
-		if err != nil {
-			oneVideoTask.err = fmt.Errorf("uploadERR: %s", err.Error())
-			goto END
-
-		}
-		fi, err = fp.Stat()
-		if err != nil {
-			oneVideoTask.err = fmt.Errorf("uploadERR: %s", err.Error())
-			goto END
-		}
-		para = &map[string]string{"flen": fmt.Sprintf("%d", fi.Size())}
+		para := map[string]string{}
 		// para from get to post
-		urlOpara = strings.Split(oneVideoTask.Nurl, "?")
+		urlOpara := strings.Split(oneVideoTask.Nurl, "?")
 		if len(urlOpara) == 2 {
-			for _, one = range strings.Split(urlOpara[1], "&") {
-				kv = strings.Split(one, "=")
+			for _, one := range strings.Split(urlOpara[1], "&") {
+				kv := strings.Split(one, "=")
 				if len(kv) == 2 {
-					(*para)[kv[0]] = kv[1]
+					para[kv[0]] = kv[1]
 				}
 			}
 		}
 
+		// 上传新视频
+		fi, err := os.Stat(confJson["tmpdir"].(string) + oneVideoTask.Tid + ".mp4")
+		if err != nil {
+			oneVideoTask.err = fmt.Errorf("uploadERR: %s", err.Error())
+			goto END
+		}
+		para["flen"] = fmt.Sprintf("%d", fi.Size())
+
 		glog.Infoln("uploadmp4: ", oneVideoTask.toString())
-		resp, err = upload(oneVideoTask.Nurl, fn+".mp4", para)
+		resp, err = upload(oneVideoTask.Nurl, confJson["tmpdir"].(string) + oneVideoTask.Tid + ".mp4", &para)
 		if err != nil {
 			oneVideoTask.err = fmt.Errorf("uploadERR: %s", err.Error())
 			goto END
@@ -200,21 +183,15 @@ func (this *rapperVideo) uploadMp4() {
 		oneVideoTask.nfid = string(resp)
 
 		// 上传新视频缩略图
-		jfp, err = os.Open(fn + ".jpg")
-		if err != nil {
-			glog.Errorln(oneVideoTask.toString(), err)
-			goto END
-
-		}
-		fi, err = jfp.Stat()
+		fi, err = os.Stat(confJson["tmpdir"].(string) + oneVideoTask.Tid + ".jpg")
 		if err != nil {
 			glog.Errorln(oneVideoTask.toString(), err)
 			goto END
 		}
-		para = &map[string]string{"flen": fmt.Sprintf("%d", fi.Size())}
+		para = map[string]string{"flen": fmt.Sprintf("%d", fi.Size())}
 
-		glog.Infoln("uploadjpg: ", oneVideoTask.toString())
-		jresp, err = upload(oneVideoTask.Nurl, fn+".jpg", para)
+		glog.Infoln("uploadjpg: ", oneVideoTask.toString(), para)
+		jresp, err = upload(oneVideoTask.Nurl, confJson["tmpdir"].(string) + oneVideoTask.Tid + ".jpg", &para)
 		if err != nil {
 			glog.Errorln(oneVideoTask.toString(), err.Error())
 			goto END
@@ -222,12 +199,6 @@ func (this *rapperVideo) uploadMp4() {
 		oneVideoTask.nimg = string(jresp)
 
 	END: // 上传完成
-		if fp != nil {
-			fp.Close()
-		}
-		if jfp != nil {
-			jfp.Close()
-		}
 		if oneVideoTask.err == nil {
 			glog.Warningln("uploadOK: ", oneVideoTask.toString())
 		} else {
@@ -243,19 +214,19 @@ func (this *rapperVideo) updateTask() {
 		oneVideoTask := <-this.toUpdate
 
 		// 回调
-		para := &map[string]string{"type": confJson["tasktype"].(string), "tid": oneVideoTask.Tid, "rid": oneVideoTask.Rid}
+		para := map[string]string{"type": confJson["tasktype"].(string), "tid": oneVideoTask.Tid, "rid": oneVideoTask.Rid}
 		if oneVideoTask.err != nil {
-			(*para)["msg"] = base64.StdEncoding.EncodeToString([]byte(oneVideoTask.err.Error()))
+			para["msg"] = base64.StdEncoding.EncodeToString([]byte(oneVideoTask.err.Error()))
 		}
 		if oneVideoTask.nimg != "" {
-			(*para)["img"] = oneVideoTask.nimg
+			para["img"] = oneVideoTask.nimg
 		}
 		if oneVideoTask.nfid != "" {
-			(*para)["nfid"] = oneVideoTask.nfid
+			para["nfid"] = oneVideoTask.nfid
 		}
 
-		glog.Infof("callbackTask: %s; para: %v", oneVideoTask.toString(), *para)
-		_, err := getRequest(oneVideoTask.Callback, para)
+		glog.Infof("callbackTask: %s; para: %v", oneVideoTask.toString(), para)
+		_, err := getRequest(oneVideoTask.Callback, &para)
 		if err != nil {
 			olderr := "NULL"
 			if oneVideoTask.err != nil {
@@ -266,20 +237,20 @@ func (this *rapperVideo) updateTask() {
 		}
 
 		// 更新任务状态
-		delete(*para, "rid")
-		delete(*para, "nfid")
-		delete(*para, "img")
-		(*para)["stat"] = "1"
-		(*para)["name"] = confJson["rappername"].(string)
+		delete(para, "rid")
+		delete(para, "nfid")
+		delete(para, "img")
+		para["stat"] = "1"
+		para["name"] = confJson["rappername"].(string)
 		if oneVideoTask.err != nil {
-			(*para)["stat"] = "-1"
-			(*para)["msg"] = base64.StdEncoding.EncodeToString([]byte(oneVideoTask.err.Error()))
+			para["stat"] = "-1"
+			para["msg"] = base64.StdEncoding.EncodeToString([]byte(oneVideoTask.err.Error()))
 		}
 
 		glog.Infoln("updateTask:", oneVideoTask.toString())
-		_, err = getRequest(confJson["taskServ"].(string)+"/uptask", para)
+		_, err = getRequest(confJson["taskServ"].(string)+"/uptask", &para)
 		if err != nil {
-			glog.Errorln("updateTask updateERR:", oneVideoTask.toString(), para, err)
+			glog.Errorln("updateTask updateERR:", oneVideoTask.toString(), para, err.Error())
 		} else {
 			glog.Warningln("updateTaskOK:", oneVideoTask.toString())
 		}
