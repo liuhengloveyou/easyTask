@@ -50,18 +50,9 @@ func init() {
 func NewRapperVideo() rapper {
 	return &rapperVideo{
 		no:          time.Now().UnixNano(),
-		toTranscode: make(chan *videoTaskInfo, 3),
-		toUpload:    make(chan *videoTaskInfo, 3),
-		toUpdate:    make(chan *videoTaskInfo, 3)}
-}
-
-func (this *videoTaskInfo) toString() string {
-	errstr := ""
-	if this.err != nil {
-		errstr = this.err.Error()
-	}
-	return fmt.Sprintf("{flen: %d; fid: %s; type: %s; url: %s; nurl: %s; callback: %s; tid: %s; rid: %s; nfid: %s; nimg: %s; err: %s}",
-		this.Flen, this.Fid, this.Type, this.Url, this.Nurl, this.Callback, this.Tid, this.Rid, this.nfid, this.nimg, errstr)
+		toTranscode: make(chan *videoTaskInfo, 5),
+		toUpload:    make(chan *videoTaskInfo, 5),
+		toUpdate:    make(chan *videoTaskInfo, 5)}
 }
 
 func (this *rapperVideo) run() {
@@ -77,7 +68,7 @@ func (this *rapperVideo) run() {
 			glog.Errorln("taskERR: ", oneTask)
 			continue
 		}
-		glog.Infoln("deal oneTask: ", this.no, oneTask)
+		glog.Infof("deal oneTask: ", this.no, oneTask)
 
 		taskInfo, err := base64.StdEncoding.DecodeString(oneTask.Info)
 		if err != nil {
@@ -100,10 +91,10 @@ func (this *rapperVideo) run() {
 
 	END: // 下载完成
 		if oneVideoTask.err == nil {
-			glog.Warningln("downloadOK: ", oneVideoTask.toString())
+			glog.Warningln("downloadOK: ", this.no, oneVideoTask.toString())
 			this.toTranscode <- oneVideoTask
 		} else {
-			glog.Errorln("downloadERR:", oneVideoTask.toString())
+			glog.Errorln("downloadERR:", this.no, oneVideoTask.toString())
 			this.toUpdate <- oneVideoTask
 		}
 	}
@@ -122,7 +113,7 @@ func (this *rapperVideo) transcode() {
 		thumbnailCmd := fmt.Sprintf(THUMFMT, fn, fn)
 
 		// 转码
-		glog.Infoln("transcode:", oneVideoTask.toString(), transcodeCmd)
+		glog.Infoln("transcode: ", this.no, oneVideoTask.toString(), transcodeCmd)
 		_, err := exec.Command("/bin/bash", "-c", transcodeCmd).Output()
 		if err != nil {
 			oneVideoTask.err = fmt.Errorf("transcodeERR: %s", err.Error())
@@ -130,7 +121,7 @@ func (this *rapperVideo) transcode() {
 		}
 
 		// 取缩略图
-		glog.Infoln("thumbnail:", oneVideoTask.toString(), thumbnailCmd)
+		glog.Infoln("thumbnail: ", this.no, oneVideoTask.toString(), thumbnailCmd)
 		_, err = exec.Command("/bin/bash", "-c", thumbnailCmd).Output()
 		if err != nil {
 			glog.Errorln(err, thumbnailCmd)
@@ -138,10 +129,10 @@ func (this *rapperVideo) transcode() {
 
 	END: // 转码完成
 		if oneVideoTask.err == nil {
-			glog.Warningln("transcodeOK: ", oneVideoTask.toString())
+			glog.Warningln("transcodeOK: ", this.no, oneVideoTask.toString())
 			this.toUpload <- oneVideoTask
 		} else {
-			glog.Errorln("transcodeERR: ", oneVideoTask.toString())
+			glog.Errorln("transcodeERR: ", this.no, oneVideoTask.toString())
 			this.toUpdate <- oneVideoTask
 		}
 	}
@@ -174,8 +165,8 @@ func (this *rapperVideo) uploadMp4() {
 		}
 		para["flen"] = fmt.Sprintf("%d", fi.Size())
 
-		glog.Infoln("uploadmp4: ", oneVideoTask.toString())
-		resp, err = upload(oneVideoTask.Nurl, confJson["tmpdir"].(string) + oneVideoTask.Tid + ".mp4", &para)
+		glog.Infoln("uploadmp4: ", this.no, oneVideoTask.toString())
+		resp, err = upload(oneVideoTask.Nurl, confJson["tmpdir"].(string)+oneVideoTask.Tid+".mp4", &para)
 		if err != nil {
 			oneVideoTask.err = fmt.Errorf("uploadERR: %s", err.Error())
 			goto END
@@ -190,8 +181,8 @@ func (this *rapperVideo) uploadMp4() {
 		}
 		para = map[string]string{"flen": fmt.Sprintf("%d", fi.Size())}
 
-		glog.Infoln("uploadjpg: ", oneVideoTask.toString(), para)
-		jresp, err = upload(oneVideoTask.Nurl, confJson["tmpdir"].(string) + oneVideoTask.Tid + ".jpg", &para)
+		glog.Infoln("uploadjpg: ", this.no, oneVideoTask.toString(), para)
+		jresp, err = upload(oneVideoTask.Nurl, confJson["tmpdir"].(string)+oneVideoTask.Tid+".jpg", &para)
 		if err != nil {
 			glog.Errorln(oneVideoTask.toString(), err.Error())
 			goto END
@@ -200,9 +191,9 @@ func (this *rapperVideo) uploadMp4() {
 
 	END: // 上传完成
 		if oneVideoTask.err == nil {
-			glog.Warningln("uploadOK: ", oneVideoTask.toString())
+			glog.Warningln("uploadOK: ", this.no, oneVideoTask.toString())
 		} else {
-			glog.Errorf("uploadERR: %v '%s'", oneVideoTask.toString())
+			glog.Errorln("uploadERR: ", this.no, oneVideoTask.toString())
 		}
 		this.toUpdate <- oneVideoTask
 	}
@@ -225,14 +216,14 @@ func (this *rapperVideo) updateTask() {
 			para["nfid"] = oneVideoTask.nfid
 		}
 
-		glog.Infof("callbackTask: %s; para: %v", oneVideoTask.toString(), para)
+		glog.Infoln("callbackTask: ", this.no, oneVideoTask.toString(), para)
 		_, err := getRequest(oneVideoTask.Callback, &para)
 		if err != nil {
 			olderr := "NULL"
 			if oneVideoTask.err != nil {
 				olderr = oneVideoTask.err.Error()
 			}
-			oneVideoTask.err = fmt.Errorf("%s\ncallbackERR: %v", olderr, err)
+			oneVideoTask.err = fmt.Errorf("%s\ncallbackERR: %s", olderr, err.Error())
 			glog.Errorln("updateTask callbackERR:", oneVideoTask.toString())
 		}
 
@@ -247,13 +238,15 @@ func (this *rapperVideo) updateTask() {
 			para["msg"] = base64.StdEncoding.EncodeToString([]byte(oneVideoTask.err.Error()))
 		}
 
-		glog.Infoln("updateTask:", oneVideoTask.toString())
+		glog.Infoln("updateTask: ", this.no, oneVideoTask.toString(), para)
 		_, err = getRequest(confJson["taskServ"].(string)+"/uptask", &para)
-		if err != nil {
-			glog.Errorln("updateTask updateERR:", oneVideoTask.toString(), para, err.Error())
+		if err == nil {
+			glog.Warningln("updateTaskOK: ", this.no, oneVideoTask.toString())
 		} else {
-			glog.Warningln("updateTaskOK:", oneVideoTask.toString())
+			glog.Errorln("updateTaskERR:", this.no, oneVideoTask.toString(), para, err.Error())
 		}
+
+		glog.Flush()
 
 		// 删除临时文件
 		fn := confJson["tmpdir"].(string) + oneVideoTask.Tid
@@ -261,4 +254,13 @@ func (this *rapperVideo) updateTask() {
 		os.Remove(fn + ".mp4")
 		os.Remove(fn + ".jpg")
 	}
+}
+
+func (this *videoTaskInfo) toString() string {
+	errstr := ""
+	if this.err != nil {
+		errstr = this.err.Error()
+	}
+	return fmt.Sprintf("{flen: %d; fid: %s; type: %s; url: %s; nurl: %s; callback: %s; tid: %s; rid: %s; nfid: %s; nimg: %s; err: %s}",
+		this.Flen, this.Fid, this.Type, this.Url, this.Nurl, this.Callback, this.Tid, this.Rid, this.nfid, this.nimg, errstr)
 }
