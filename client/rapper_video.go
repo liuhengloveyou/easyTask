@@ -83,7 +83,7 @@ func (this *rapperVideo) run() {
 		}
 
 		// 下载文件
-		glog.Infoln("download oneTask begin: ", oneVideoTask.toString())
+		glog.Infoln("download oneTask begin: ", this.no, oneVideoTask.toString())
 		err = download(oneVideoTask.Url, confJson["tmpdir"].(string)+oneVideoTask.Tid)
 		if err != nil {
 			oneVideoTask.err = fmt.Errorf("downloadERR: %s", err.Error())
