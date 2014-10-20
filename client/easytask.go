@@ -13,7 +13,6 @@ import (
 	"runtime"
 	"sync"
 	"time"
-	"strings"
 	
 	"github.com/golang/glog"
 )
@@ -164,7 +163,7 @@ func getRequest(url string, para *map[string]string) ([]byte, error) {
 	if para != nil {
 		url += "?"
 		for k, v := range *para {
-			url +=  strings.Trim(k, "\n ") + "=" + strings.Trim(v, "\n ") + "&"
+			url +=  k + "=" + v + "&"
 		}
 	}
 

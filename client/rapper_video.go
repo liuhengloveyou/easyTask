@@ -171,7 +171,7 @@ func (this *rapperVideo) uploadMp4() {
 			oneVideoTask.err = fmt.Errorf("uploadERR: %s", err.Error())
 			goto END
 		}
-		oneVideoTask.nfid = string(resp)
+		oneVideoTask.nfid = strings.Trim(string(resp), "\n ")
 
 		// 上传新视频缩略图
 		fi, err = os.Stat(confJson["tmpdir"].(string) + oneVideoTask.Tid + ".jpg")
@@ -187,7 +187,7 @@ func (this *rapperVideo) uploadMp4() {
 			glog.Errorln(oneVideoTask.toString(), err.Error())
 			goto END
 		}
-		oneVideoTask.nimg = string(jresp)
+		oneVideoTask.nimg = strings.Trim(string(jresp), "\n ")
 
 	END: // 上传完成
 		if oneVideoTask.err == nil {
@@ -209,14 +209,14 @@ func (this *rapperVideo) updateTask() {
 		if oneVideoTask.err != nil {
 			para["msg"] = base64.StdEncoding.EncodeToString([]byte(oneVideoTask.err.Error()))
 		}
-		if oneVideoTask.nimg != "" {
-			para["img"] = oneVideoTask.nimg
-		}
 		if oneVideoTask.nfid != "" {
 			para["nfid"] = oneVideoTask.nfid
 		}
+		if oneVideoTask.nimg != "" {
+			para["img"] = oneVideoTask.nimg
+		}
 
-		glog.Infoln("callbackTask: ", this.no, oneVideoTask.toString(), para)
+		glog.Warningln("callbackTask: ", this.no, oneVideoTask.toString(), para)
 		_, err := getRequest(oneVideoTask.Callback, &para)
 		if err != nil {
 			olderr := "NULL"
@@ -248,11 +248,12 @@ func (this *rapperVideo) updateTask() {
 
 		glog.Flush()
 
-		// 删除临时文件
+		/* 删除临时文件
 		fn := confJson["tmpdir"].(string) + oneVideoTask.Tid
 		os.Remove(fn)
 		os.Remove(fn + ".mp4")
 		os.Remove(fn + ".jpg")
+*/
 	}
 }
 
