@@ -248,12 +248,11 @@ func (this *rapperVideo) updateTask() {
 
 		glog.Flush()
 
-		/* 删除临时文件
+		// 删除临时文件
 		fn := confJson["tmpdir"].(string) + oneVideoTask.Tid
 		os.Remove(fn)
 		os.Remove(fn + ".mp4")
 		os.Remove(fn + ".jpg")
-*/
 	}
 }
 
