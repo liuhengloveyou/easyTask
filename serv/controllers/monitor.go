@@ -1,11 +1,13 @@
 package controllers
 
 import (
-	"net/http"
+	"encoding/base64"
 	"encoding/json"
+	"net/http"
+	"strings"
 
 	. "easyTask/serv/models"
-	
+
 	"github.com/golang/glog"
 )
 
@@ -48,14 +50,14 @@ func (this *MonitorHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		} else {
 			res, _ = json.Marshal(md)
 		}
-		
+
 		break
 	case "info":
 		if ttype == "" || tid == "" {
 			res = []byte("{}")
 			break
 		}
-		
+
 		tmap, err := InfoData(ttype, tid)
 		if err != nil {
 			glog.Errorln(err)
@@ -64,12 +66,19 @@ func (this *MonitorHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		if len(tmap) < 1 {
 			res = []byte("{}")
 		} else {
+			tmp, _ := base64.StdEncoding.DecodeString(tmap[0]["info"])
+			tmap[0]["info"] = string(tmp)
+			if "" != tmap[0]["remark"] {
+				tmp, _ = base64.StdEncoding.DecodeString(strings.Replace(tmap[0]["remark"], " ", "", -1))
+				tmap[0]["remark"] = string(tmp)
+			}
+
 			res, _ = json.Marshal(tmap[0])
 		}
 	}
 
 	w.Write(res)
-	
+
 	return
 }
 
@@ -89,11 +98,10 @@ func (this *MonitorHandler) monitorData() ([]map[string]interface{}, error) {
 		}
 
 		one := map[string]interface{}{"Name": k, "Ibuff": si, "Obuff": so, "Ncout": nc, "Icout": ic, "Scout": sc, "Ecout": ec, "Nrec": nr, "Irec": ir, "Erec": er, "Rappers": v.RapperNames()}
-		
+
 		mdata[i] = one
 		i++
 	}
 
 	return mdata, nil
 }
-

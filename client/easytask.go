@@ -142,16 +142,12 @@ func upload(url, fn string, para *map[string]string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	respBody, err := ioutil.ReadAll(resp.Body)
-	if resp.StatusCode != 200 {
-		var errRst error
-		if err != nil {
-			errRst = fmt.Errorf("%v\r\n%s", resp.StatusCode, err.Error())
-		} else {
-			errRst = fmt.Errorf("%v\r\n%s", resp.StatusCode, respBody)
-		}
-		return nil, errRst
+	if err != nil {
+		return nil, err
+	} else if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("%v\r\n%v\r\n%s", resp.StatusCode, resp.Header, respBody)
 	}
-
+	
 	return respBody, nil
 }
 

@@ -172,6 +172,10 @@ func (this *rapperVideo) uploadMp4() {
 			goto END
 		}
 		oneVideoTask.nfid = strings.Trim(string(resp), "\n ")
+		if oneVideoTask.nfid == "" {
+			oneVideoTask.err = fmt.Errorf("uploadERR: nfid nil")
+			goto END
+		}
 
 		// 上传新视频缩略图
 		fi, err = os.Stat(confJson["tmpdir"].(string) + oneVideoTask.Tid + ".jpg")
