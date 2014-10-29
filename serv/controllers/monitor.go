@@ -47,21 +47,23 @@ func (this *MonitorHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		md, err := this.monitorData()
 		if err != nil {
 			glog.Errorln(err)
-		} else {
-			res, _ = json.Marshal(md)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
 		}
-
-		break
+		res, _ = json.Marshal(md)
 	case "info":
 		if ttype == "" || tid == "" {
-			res = []byte("{}")
-			break
+			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 
 		tmap, err := InfoData(ttype, tid)
 		if err != nil {
 			glog.Errorln(err)
-			break
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		if len(tmap) < 1 {
 			res = []byte("{}")
@@ -75,10 +77,35 @@ func (this *MonitorHandler) doGet(w http.ResponseWriter, r *http.Request) {
 
 			res, _ = json.Marshal(tmap[0])
 		}
+	case "del":
+		if ttype == "" || tid == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		
+		if _, err := UpTaskStatByTid(ttype, tid, -100); err != nil {
+			glog.Errorln(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		res = []byte("OK")
+	case "redo":
+		if ttype == "" || tid == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		
+		if _, err := UpTaskStatByTid(ttype, tid, 1); err != nil {
+			glog.Errorln(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		res = []byte("OK")
 	}
 
 	w.Write(res)
-
 	return
 }
 

@@ -38,9 +38,9 @@ func upTask2DB(ttype, tid, rapper, msg string, stat int64) (int64, error) {
 	return db.Update(sqlStr, stat, rapper, msg, tid)
 }
 
-func upTaskStat2DB(ttype string, ids, ide int64) (int64, error) {
-	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=2 WHERE `id` >= ? AND `id` <= ? AND `stat`=1", ttype)
-	return db.Update(sqlStr, ide, ids)
+func upTaskStatByID(ttype string, ids, ide, newstat, oldstat int64) (int64, error) {
+	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=? WHERE `id` >= ? AND `id` <= ? AND `stat`=?", ttype)
+	return db.Update(sqlStr, newstat, ide, ids, oldstat)
 }
 
 func getTasks(ttype string, num int64) ([]map[string]string, error) {
@@ -50,6 +50,12 @@ func getTasks(ttype string, num int64) ([]map[string]string, error) {
 
 
 /* monitor >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
+
+func UpTaskStatByTid(ttype, tid string, newstat int64) (int64, error) {
+	sqlStr := fmt.Sprintf("UPDATE `tasks_%s` SET `stat`=? WHERE `tid`=?", ttype)
+	return db.Update(sqlStr, newstat, tid)
+}
+
 func InfoData(ttype, tid string) ([]map[string]string, error) {
 	sqlStr := fmt.Sprintf("SELECT * FROM `tasks_%s` WHERE `tid`=?", ttype)
 	rst, err := db.Query(sqlStr, tid)

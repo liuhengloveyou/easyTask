@@ -172,7 +172,7 @@ func (this *TaskType) realDistTask() {
 		// 更新任务状态
 		idsi, _ := strconv.ParseInt(ids, 10, 64)
 		idei, _ := strconv.ParseInt(ide, 10, 64)
-		if _, err := upTaskStat2DB(this.Name, idsi, idei); err != nil {
+		if _, err := upTaskStatByID(this.Name, idsi, idei, 2, 1); err != nil {
 			glog.Errorln(err)
 		}
 	}

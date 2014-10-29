@@ -56,10 +56,19 @@ func NewRapperVideo() rapper {
 }
 
 func (this *rapperVideo) run() {
+	uploadUrlConf := ""
+	callbackUrlConf := ""
+	if val, ok := confJson["uploadUrl"]; ok == true && val.(string) != "" {
+		uploadUrlConf = val.(string)
+	}
+	if val, ok := confJson["callbackUrl"]; ok == true && val.(string) != "" {
+		callbackUrlConf = val.(string)
+	}
+	
 	go this.transcode()
 	go this.uploadMp4()
 	go this.updateTask()
-
+	
 	for {
 		// 取一个任务
 		oneTask := oneTask()
@@ -80,6 +89,14 @@ func (this *rapperVideo) run() {
 		if err != nil {
 			oneVideoTask.err = fmt.Errorf("downloadERR: %s", err.Error())
 			goto END
+		}
+
+		// 覆盖配置参数
+		if uploadUrlConf != "" {
+			oneVideoTask.Nurl = uploadUrlConf
+		}
+		if callbackUrlConf != "" {
+			oneVideoTask.Callback = callbackUrlConf
 		}
 
 		// 下载文件

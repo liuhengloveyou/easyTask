@@ -8,6 +8,7 @@ var task = (function($){
 	$("#searchTxt").focus(function(){ 
 	    $("#searchTxt").val("").css("border-color", "#ccc");
 	});
+
     }
 
     //任务数据请求
@@ -29,12 +30,28 @@ var task = (function($){
 		    $("#select").html(ttype);
 		    $("#search").click(function(){searchInfo('/monitor?act=info'); });
 		    $("#newType").click(function(){ addType('/newtype'); });
+
+
 		    alertInfo('/monitor?act=info');
 		}
 	    },
 	    error: function(data) {
 		$("#" + containID).html('ERR...' + data.responseText);
 	    }
+	});
+    }
+
+    function redodel(url, ttype, tid){
+	$.ajax({
+		type: 'GET',
+		url: url+ '&ttype=' + ttype + '&tid=' + tid,
+		success: function(data){
+		    alert(data);
+		    location.reload();
+		},
+		error: function(msg) {
+		    alert(msg.responseText + ". stat:" + msg.status)
+		}
 	});
     }
 
@@ -67,11 +84,14 @@ var task = (function($){
 
     function addType(url){
 	var name = $("#newTypeTxt").val();
-	if (/^[a-z]{3,6}$/.test(name)) {
+	if (/^[a-z0-9]{3,6}$/.test(name)) {
 	    if (confirm("确定添加数据")) {
 		$.ajax({
 		    type: 'GET',
 		    url: url + '?name=' + name,
+		    success: function(data){
+		    	location.reload();
+		    },
 		    error: function(msg) {
 			alert(msg.responseText + ". stat:" + msg.status)
 		    }
@@ -99,10 +119,18 @@ var task = (function($){
     }
 
     //doc
-    function insertIntoDataTD(arr, name){
+    function insertIntoDataTD(arr, name, type){
 	var string = '';
 	if (arr instanceof Array) {
 	    for (var i = 0, len = arr.length; i < len; i++) {
+	    	if (type == 'rapper') {
+	    		string += '<li ttype="' + name + '" class="rapper">' + arr[i] + '</li>';
+	    		continue;
+	    	}
+	    	if (type == 're') {
+	    		string += '<li ttype="' + name + '" type="redo">' + arr[i] + '</li>';
+	    		continue;
+	    	}
 		string += '<li ttype="' + name + '">' + arr[i] + '</li>';
 	    }
 	}
@@ -117,14 +145,17 @@ var task = (function($){
 	    '<ul class="new box-flex1">' +
 	    insertIntoDataTD(options.Nrec, options.Name) +
 	    '</ul>' +
+	    //ing
 	    '<ul class="ing box-flex1">' +
 	    insertIntoDataTD(options.Irec, options.Name) +
 	    '</ul>' +
+	    //error
 	    '<ul class="error box-flex1">' +
-	    insertIntoDataTD(options.Erec, options.Name) +
+	    insertIntoDataTD(options.Erec, options.Name, 're') +
 	    '</ul>' +
+	    //rapper
 	    '<ul class="rapper box-flex1">' +
-	    insertIntoDataTD(options.Rappers, options.Name) +
+	    insertIntoDataTD(options.Rappers, options.Name, 'rapper') +
 	    '</ul>' +
 	    '</div>' +
 	    '</div>';
@@ -134,9 +165,10 @@ var task = (function($){
 
     //click detail info
     function alertInfo(url){
-	$(".datatable li").click(function(){
+	$(".datatable li").not('.rapper').click(function(){
 	    var ttype = $(this).attr('ttype');
 	    var tid = $(this).html();
+	    var _this = $(this);
 	    $.ajax({
 		type: 'GET',
 		url: url + '&ttype=' + ttype + '&tid=' + tid,
@@ -145,6 +177,17 @@ var task = (function($){
 		    if (data != null || data != "") {
 			json = JSON.parse(data);
 			Alert('<table class="info">' + docInfo(json) + '</table>');
+			var type = _this.attr('type');
+			if (type == 'redo') {
+				$("#redo_btn").show();
+				$("#del_btn").show();
+			} else {
+				$("#redo_btn").hide();
+				$("#del_btn").hide();
+			}
+
+			$("#redo_btn").click(function(){redodel('/monitor?act=redo', ttype, tid); });
+			$("#del_btn").click(function(){ redodel('/monitor?act=del', ttype, tid); });
 		    }
 		},
 		error: function(data){

@@ -279,7 +279,7 @@ func NewRapper(typeName string) (rapper, error) {
 
 func main() {
 	flag.Parse()
-
+	
 	// 向服务器打招乎
 	if err := sayHiToServ(); err != nil {
 		panic(err)

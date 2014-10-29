@@ -38,7 +38,7 @@ func main() {
 
 	go RapperCleaner()
 
-	fmt.Println("easytask GO...")
+	fmt.Println("easytask GO...", ConfJson["listenaddr"].(string))
 	if err := s.ListenAndServe(); err != nil {
 		panic("ListenAndServe: " + err.Error())
 	}
