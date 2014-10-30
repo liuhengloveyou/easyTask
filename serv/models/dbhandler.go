@@ -107,6 +107,7 @@ func GetRecord(ttype string) (nr, ir, er []string, err error) {
 			nr = append(nr, nv["tid"])
 		case "2":
 			ir = append(ir, nv["tid"])
+		case "3":
 		case "-1":
 			er = append(er, nv["tid"])
 		}

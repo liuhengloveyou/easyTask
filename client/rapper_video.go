@@ -64,11 +64,11 @@ func (this *rapperVideo) run() {
 	if val, ok := confJson["callbackUrl"]; ok == true && val.(string) != "" {
 		callbackUrlConf = val.(string)
 	}
-	
+
 	go this.transcode()
 	go this.uploadMp4()
 	go this.updateTask()
-	
+
 	for {
 		// 取一个任务
 		oneTask := oneTask()
@@ -100,9 +100,13 @@ func (this *rapperVideo) run() {
 		}
 
 		// 下载文件
-		glog.Infoln("download oneTask begin: ", this.no, oneVideoTask.toString())
-		err = download(oneVideoTask.Url, confJson["tmpdir"].(string)+oneVideoTask.Tid)
-		if err != nil {
+		for i := 0; i < 3; i++ {
+			glog.Infoln("download oneTask begin: ", this.no, oneVideoTask.toString(), i)
+			err = download(oneVideoTask.Url, confJson["tmpdir"].(string)+oneVideoTask.Tid)
+			if err == nil {
+				oneVideoTask.err = nil
+				break
+			}
 			oneVideoTask.err = fmt.Errorf("downloadERR: %s", err.Error())
 		}
 
@@ -117,10 +121,10 @@ func (this *rapperVideo) run() {
 	}
 }
 
-func (this *rapperVideo) transcode() {
-	const TRANFMT = "export LANGUAGE=en_US;ffmpeg -y -v error -i %s -movflags +faststart -vcodec libx264 -b:v 512k -acodec libvo_aacenc -ab 128k %s.mp4"
+func (this *rapperVideo) transcode() {	
+	const TRANFMT = "export LANGUAGE=en_US;ffmpeg -y -v error -i %s -movflags +faststart -vcodec libx264 -b:v 512k -acodec libvo_aacenc -ab 128k -vf 'movie=watermark.png[logo];[in][logo]overlay=main_w-overlay_w-5:10[out]' %s.mp4"
 	const THUMFMT = "export LANGUAGE=en_US;ffmpeg -y -v error -i %s.mp4 -y -f  image2 -ss 8.0  -vframes 1 -s 120x80 %s.jpg"
-
+	
 	for {
 		// 取一个任务
 		oneVideoTask := <-this.toTranscode
@@ -158,6 +162,7 @@ func (this *rapperVideo) transcode() {
 func (this *rapperVideo) uploadMp4() {
 	for {
 		var resp, jresp []byte
+		var redo  int32
 
 		// 取一个任务
 		oneVideoTask := <-this.toUpload
@@ -174,10 +179,12 @@ func (this *rapperVideo) uploadMp4() {
 			}
 		}
 
+	REDO:
 		// 上传新视频
 		fi, err := os.Stat(confJson["tmpdir"].(string) + oneVideoTask.Tid + ".mp4")
 		if err != nil {
 			oneVideoTask.err = fmt.Errorf("uploadERR: %s", err.Error())
+			redo = 10
 			goto END
 		}
 		para["flen"] = fmt.Sprintf("%d", fi.Size())
@@ -215,6 +222,10 @@ func (this *rapperVideo) uploadMp4() {
 			glog.Warningln("uploadOK: ", this.no, oneVideoTask.toString())
 		} else {
 			glog.Errorln("uploadERR: ", this.no, oneVideoTask.toString())
+			if redo++; redo < 3 {
+				oneVideoTask.err = nil
+				goto REDO
+			}
 		}
 		this.toUpdate <- oneVideoTask
 	}
@@ -237,15 +248,19 @@ func (this *rapperVideo) updateTask() {
 			para["img"] = oneVideoTask.nimg
 		}
 
-		glog.Warningln("callbackTask: ", this.no, oneVideoTask.toString(), para)
-		_, err := getRequest(oneVideoTask.Callback, &para)
-		if err != nil {
-			olderr := "NULL"
-			if oneVideoTask.err != nil {
-				olderr = oneVideoTask.err.Error()
+		olderr := "NULL"
+		if oneVideoTask.err != nil {
+			olderr = oneVideoTask.err.Error()
+		}
+		for i := 0; i < 3; i++ {
+			glog.Warningln("callbackTask: ", this.no, oneVideoTask.toString(), para)
+			_, err := getRequest(oneVideoTask.Callback, &para)
+			if err == nil {
+				oneVideoTask.err = nil
+				break
 			}
 			oneVideoTask.err = fmt.Errorf("%s\ncallbackERR: %s", olderr, err.Error())
-			glog.Errorln("updateTask callbackERR:", oneVideoTask.toString())
+			glog.Errorln("updateTask callbackERR:", oneVideoTask.toString())	
 		}
 
 		// 更新任务状态
@@ -260,7 +275,7 @@ func (this *rapperVideo) updateTask() {
 		}
 
 		glog.Infoln("updateTask: ", this.no, oneVideoTask.toString(), para)
-		_, err = getRequest(confJson["taskServ"].(string)+"/uptask", &para)
+		_, err := getRequest(confJson["taskServ"].(string)+"/uptask", &para)
 		if err == nil {
 			glog.Warningln("updateTaskOK: ", this.no, oneVideoTask.toString())
 		} else {
