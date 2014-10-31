@@ -7,13 +7,13 @@ import (
 	"runtime"
 	"time"
 
+	. "easyTask/serv/common"
 	. "easyTask/serv/controllers"
 	. "easyTask/serv/models"
-	. "easyTask/serv/common"
 )
 
 func init() {
-	runtime.GOMAXPROCS(8)	
+	runtime.GOMAXPROCS(8)
 }
 
 func main() {
@@ -44,10 +44,9 @@ func main() {
 	}
 }
 
-
 /*
 CREATE DATABASE IF NOT EXISTS `taskmanager` DEFAULT CHARACTER SET utf8;
-	
+
 CREATE TABLE `tasks_demo` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`tid` varchar(33) NOT NULL,

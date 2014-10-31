@@ -100,13 +100,9 @@ func (this *rapperVideo) run() {
 		}
 
 		// 下载文件
-		for i := 0; i < 3; i++ {
-			glog.Infoln("download oneTask begin: ", this.no, oneVideoTask.toString(), i)
-			err = download(oneVideoTask.Url, confJson["tmpdir"].(string)+oneVideoTask.Tid)
-			if err == nil {
-				oneVideoTask.err = nil
-				break
-			}
+		glog.Infoln("download oneTask begin: ", this.no, oneVideoTask.toString())
+		err = download(oneVideoTask.Url, confJson["tmpdir"].(string)+oneVideoTask.Tid)
+		if err != nil {
 			oneVideoTask.err = fmt.Errorf("downloadERR: %s", err.Error())
 		}
 
@@ -121,9 +117,10 @@ func (this *rapperVideo) run() {
 	}
 }
 
-func (this *rapperVideo) transcode() {	
-	const TRANFMT = "export LANGUAGE=en_US;ffmpeg -y -v error -i %s -movflags +faststart -vcodec libx264 -b:v 512k -acodec libvo_aacenc -ab 128k -vf 'movie=watermark.png[logo];[in][logo]overlay=main_w-overlay_w-5:10[out]' %s.mp4"
+func (this *rapperVideo) transcode() {
+	const TRANFMT = "export LANGUAGE=en_US;ffmpeg -y -v error -i %s -movflags +faststart -vcodec libx264 -profile:v main -level 3 -b:v 512k -acodec libvo_aacenc -ab 128k -vf 'movie=watermark.png[logo];[in][logo]overlay=main_w-overlay_w-5:10[out]' %s.mp4"
 	const THUMFMT = "export LANGUAGE=en_US;ffmpeg -y -v error -i %s.mp4 -y -f  image2 -ss 8.0  -vframes 1 -s 120x80 %s.jpg"
+	// const THUMFM2 = "export LANGUAGE=en_US;ffmpeg -y -v error -i %s_1.jpg -y -f image2 -vf crop=320:170:0:0 -s 200x112 %s_1.jpg"
 	
 	for {
 		// 取一个任务
@@ -137,7 +134,7 @@ func (this *rapperVideo) transcode() {
 		glog.Infoln("transcode: ", this.no, oneVideoTask.toString(), transcodeCmd)
 		_, err := exec.Command("/bin/bash", "-c", transcodeCmd).Output()
 		if err != nil {
-			oneVideoTask.err = fmt.Errorf("transcodeERR: %s", err.Error())
+			oneVideoTask.err = fmt.Errorf("transcodeERR: cmd='%s'; err='%s'", transcodeCmd, err.Error())
 			goto END
 		}
 
@@ -162,7 +159,6 @@ func (this *rapperVideo) transcode() {
 func (this *rapperVideo) uploadMp4() {
 	for {
 		var resp, jresp []byte
-		var redo  int32
 
 		// 取一个任务
 		oneVideoTask := <-this.toUpload
@@ -179,12 +175,10 @@ func (this *rapperVideo) uploadMp4() {
 			}
 		}
 
-	REDO:
 		// 上传新视频
 		fi, err := os.Stat(confJson["tmpdir"].(string) + oneVideoTask.Tid + ".mp4")
 		if err != nil {
 			oneVideoTask.err = fmt.Errorf("uploadERR: %s", err.Error())
-			redo = 10
 			goto END
 		}
 		para["flen"] = fmt.Sprintf("%d", fi.Size())
@@ -222,10 +216,6 @@ func (this *rapperVideo) uploadMp4() {
 			glog.Warningln("uploadOK: ", this.no, oneVideoTask.toString())
 		} else {
 			glog.Errorln("uploadERR: ", this.no, oneVideoTask.toString())
-			if redo++; redo < 3 {
-				oneVideoTask.err = nil
-				goto REDO
-			}
 		}
 		this.toUpdate <- oneVideoTask
 	}
@@ -248,19 +238,18 @@ func (this *rapperVideo) updateTask() {
 			para["img"] = oneVideoTask.nimg
 		}
 
-		olderr := "NULL"
+		olderr := ""
 		if oneVideoTask.err != nil {
 			olderr = oneVideoTask.err.Error()
 		}
-		for i := 0; i < 3; i++ {
-			glog.Warningln("callbackTask: ", this.no, oneVideoTask.toString(), para)
-			_, err := getRequest(oneVideoTask.Callback, &para)
-			if err == nil {
-				oneVideoTask.err = nil
-				break
-			}
+		glog.Warningln("callbackTask: ", this.no, oneVideoTask.toString(), para)
+		body, err := getRequest(oneVideoTask.Callback, &para)
+		if err != nil {
 			oneVideoTask.err = fmt.Errorf("%s\ncallbackERR: %s", olderr, err.Error())
-			glog.Errorln("updateTask callbackERR:", oneVideoTask.toString())	
+			glog.Errorln("updateTask callbackERR:", oneVideoTask.toString())
+		} else if string(body) != "true" {
+			oneVideoTask.err = fmt.Errorf("%s\ncallbackERR: %s", olderr, body)
+			glog.Errorln("updateTask callbackERR:", oneVideoTask.toString(), body)
 		}
 
 		// 更新任务状态
@@ -275,7 +264,7 @@ func (this *rapperVideo) updateTask() {
 		}
 
 		glog.Infoln("updateTask: ", this.no, oneVideoTask.toString(), para)
-		_, err := getRequest(confJson["taskServ"].(string)+"/uptask", &para)
+		_, err = getRequest(confJson["taskServ"].(string)+"/uptask", &para)
 		if err == nil {
 			glog.Warningln("updateTaskOK: ", this.no, oneVideoTask.toString())
 		} else {

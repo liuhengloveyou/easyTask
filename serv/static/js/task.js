@@ -69,6 +69,12 @@ var task = (function($){
 			console.info(data == "");
 			json = JSON.parse(data);
 			Alert('<table class="info">' + docInfo(json) + '</table>');
+			
+			//点搜索时显示重做删除
+			$("#redo_btn").show();
+			$("#del_btn").show();
+			$("#redo_btn").click(function(){redodel('/monitor?act=redo', ttype, tid); });
+			$("#del_btn").click(function(){ redodel('/monitor?act=del', ttype, tid); });
 		    } else if (data == "") {
 			Alert('未找到该任务信息');
 		    }
