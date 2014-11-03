@@ -14,6 +14,11 @@ import (
 type GetTaskHandler struct {}
 
 func (this *GetTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if Sig != "" {
+		this.writeErr(w, http.StatusServiceUnavailable, []byte(Sig))
+		return
+	}
+	
 	if r.Method == "GET" {
 		this.doGet(w, r)
 	} else {

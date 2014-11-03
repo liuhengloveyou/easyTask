@@ -4,7 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
 	"runtime"
+	"syscall"
 	"time"
 
 	. "easyTask/serv/common"
@@ -16,8 +19,21 @@ func init() {
 	runtime.GOMAXPROCS(8)
 }
 
+func sigHandler() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+
+	go func() {
+		s := <-c
+		Sig = "service is suspend ..."
+		fmt.Println("Got signal:", s)
+	}()
+}
+
 func main() {
 	flag.Parse()
+
+	sigHandler()
 
 	http.Handle("/putask", &PutTaskHandler{})
 	http.Handle("/getask", &GetTaskHandler{})

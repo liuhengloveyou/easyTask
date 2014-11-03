@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-
+var Sig string
 var ConfJson map[string]interface{} // 系统配置信息
 
 func init() {
