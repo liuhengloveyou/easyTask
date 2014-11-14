@@ -33,8 +33,6 @@ func sigHandler() {
 func main() {
 	flag.Parse()
 
-	sigHandler()
-
 	http.Handle("/putask", &PutTaskHandler{})
 	http.Handle("/getask", &GetTaskHandler{})
 	http.Handle("/uptask", &UpTaskHandler{})
@@ -52,6 +50,7 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
+	sigHandler()
 	go RapperCleaner()
 
 	fmt.Println("easytask GO...", ConfJson["listenaddr"].(string))
