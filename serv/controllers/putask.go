@@ -12,6 +12,8 @@ import (
 	"github.com/golang/glog"
 )
 
+const PUTTASKUSAGE = "GET /putask?type=typename&rid=recordid&info=taskinfo"
+
 type PutTaskHandler struct{}
 
 func (this *PutTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -23,20 +25,18 @@ func (this *PutTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		this.doGet(w, r)
 	} else {
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		this.writeErr(w, http.StatusMethodNotAllowed, []byte(PUTTASKUSAGE))
 	}
 
+	glog.Flush()
 	return
 }
 
-func (this *PutTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
-	const USAGE = "GET /putask?type=typename&rid=recordid&info=taskinfo"
-
+func (this *PutTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {	
 	r.ParseForm()
 	ttype, rid, info := r.FormValue("type"), r.FormValue("rid"), r.FormValue("info")
 	if "" == ttype || "" == rid || "" == info {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(USAGE))
+		this.writeErr(w, http.StatusBadRequest, []byte(PUTTASKUSAGE))
 		return
 	}
 
@@ -47,15 +47,15 @@ func (this *PutTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inSize, backSize := taskTypeOne.BuffSize()
-	if inSize >= int64(ConfJson["taskBuffSize"].(float64)) {
-		this.writeErr(w, http.StatusInternalServerError, []byte("server to busy"))
-		glog.Errorln("server to busy err:", inSize, backSize, int(ConfJson["taskBuffSize"].(float64)))
+	inSize, outSize := taskTypeOne.BuffSize()
+	if inSize >= int64(ConfJson["inBuffSize"].(float64)) {
+		this.writeErr(w, http.StatusInternalServerError, []byte("service to busy"))
+		glog.Errorln("server to busy err:", inSize, outSize, int(ConfJson["inBuffSize"].(float64)))
 		return
 	}
 
 	var stat int64 = 1
-	if backSize < int64(ConfJson["taskBuffSize"].(float64)) && taskTypeOne.RapperNum() > 0 {
+	if outSize < int64(ConfJson["outBuffSize"].(float64)) && taskTypeOne.RapperNum() > 0 {
 		stat = 2
 	}
 	

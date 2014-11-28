@@ -11,6 +11,8 @@ import (
 	"github.com/golang/glog"
 )
 
+const GETTASKUSAGE = "GET /getask?type=typename&name=rappername&num=123"
+
 type GetTaskHandler struct {}
 
 func (this *GetTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -22,29 +24,28 @@ func (this *GetTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		this.doGet(w, r)
 	} else {
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		this.writeErr(w, http.StatusMethodNotAllowed, []byte(GETTASKUSAGE))
 	}
 
+	glog.Flush()
 	return
 }
 
 func (this *GetTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
-	const USAGE = "GET /getask?type=typename&name=rappername&num=123"
-	
 	r.ParseForm()
 	ttype, name, num := r.FormValue("type"), r.FormValue("name"), r.FormValue("num")
 	if "" == ttype || "" == name || "" == num {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(USAGE))
+		this.writeErr(w, http.StatusBadRequest, []byte(GETTASKUSAGE))
 		return
 	}
+	
 	inum, err := strconv.Atoi(num)
 	if err != nil {
 		this.writeErr(w, http.StatusBadRequest, []byte("num err"))
 		glog.Errorln("getask num ERR:", num)
 		return
 	}
-	if inum >= int(ConfJson["MaxTaskPerRapper"].(float64)) {
+	if inum >= int(ConfJson["maxTaskPerRapper"].(float64)) {
 		this.writeErr(w, http.StatusBadRequest, []byte("num to bag"))
 		glog.Errorln("getask num ERR:", num)
 		return
@@ -62,9 +63,9 @@ func (this *GetTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rapperOne.TaskSize() > int(ConfJson["MaxTaskPerRapper"].(float64)) {
+	if rapperOne.TaskSize() > int(ConfJson["maxTaskPerRapper"].(float64)) {
 		this.writeErr(w, http.StatusBadRequest, []byte("to much tasks"))
-		glog.Errorln("getask to mach ERR:", rapperOne.TaskSize, int(ConfJson["MaxTaskPerRapper"].(float64)))
+		glog.Errorln("getask to mach ERR:", rapperOne.TaskSize, int(ConfJson["maxTaskPerRapper"].(float64)))
 		return
 	}
 	
@@ -77,8 +78,8 @@ func (this *GetTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	jsonByte, _ := json.Marshal(rst)
-	w.Write(jsonByte)
 	glog.Infoln("getask OK: ", string(jsonByte))
+	w.Write(jsonByte)
 	
 	return
 }

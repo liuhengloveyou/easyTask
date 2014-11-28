@@ -191,7 +191,7 @@ func oneTask() *taskInfo {
 			for {
 				resp, err := http.Get(urlStr)
 				if err != nil {
-					glog.Errorln(err, urlStr)
+					glog.Errorln(urlStr, err.Error())
 					time.Sleep(1 * time.Second)
 					continue
 				}
@@ -199,7 +199,7 @@ func oneTask() *taskInfo {
 				body, err := ioutil.ReadAll(resp.Body)
 				resp.Body.Close()
 				if err != nil || resp.StatusCode != 200 {
-					glog.Errorln(err, resp.StatusCode, string(body))
+					glog.Errorln(resp.StatusCode, string(body), err.Error())
 					time.Sleep(1 * time.Second)
 					continue
 				}
@@ -207,7 +207,7 @@ func oneTask() *taskInfo {
 				var taskJson []taskInfo
 				err = json.Unmarshal(body, &taskJson)
 				if err != nil {
-					glog.Errorln(err, string(body))
+					glog.Errorln(string(body), err.Error())
 					time.Sleep(1 * time.Second)
 					continue
 				}

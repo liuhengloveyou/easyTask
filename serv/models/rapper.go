@@ -6,16 +6,10 @@ import (
 )
 
 type Rapper struct {
-	Name string
+	Name  string
 	tasks map[string]*TaskInfo
-	lock sync.Mutex
-	beat int64
-}
-
-func NewRapper(name string) *Rapper {
-	one := new(Rapper).Init()
-	one.Name = name
-	return one
+	lock  sync.Mutex
+	beat  int64
 }
 
 func (this *Rapper) Init() *Rapper {
@@ -26,15 +20,21 @@ func (this *Rapper) Init() *Rapper {
 	return this
 }
 
+func NewRapper(name string) *Rapper {
+	one := new(Rapper).Init()
+	one.Name = name
+	return one
+}
+
 func (this *Rapper) Beat(b bool) int64 {
 	if b == true {
 		this.beat = time.Now().Unix()
 	}
-	
+
 	return this.beat
 }
 
-func (this *Rapper) Kill(){
+func (this *Rapper) Kill() {
 	this.beat = -1
 }
 
@@ -56,13 +56,15 @@ func (this *Rapper) DelTask(tid string) {
 
 func (this *Rapper) ReSet() []*TaskInfo {
 	this.lock.Lock()
-	defer this.lock.Unlock()
-	
-	tasks := make([]*TaskInfo, len(this.tasks))
+	taskLen := len(this.tasks)
+	tasks := make([]*TaskInfo, taskLen)
 	for _, v := range this.tasks {
-		tasks = append(tasks, v)
+		tasks[taskLen-1] = v
+		taskLen = taskLen - 1
 	}
+
 	this.tasks = make(map[string]*TaskInfo)
-	
+	this.lock.Unlock()
+
 	return tasks
 }

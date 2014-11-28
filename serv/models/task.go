@@ -7,10 +7,9 @@ import (
 	"time"
 
 	. "easyTask/serv/common"
-	
+
 	"github.com/golang/glog"
 )
-
 
 type TaskInfo struct {
 	Tid  string // 任务ID
@@ -36,18 +35,18 @@ type TaskInfo2DB struct {
 	msg      string
 }
 
-func NewTaskType() *TaskType {
-	return new(TaskType).Init()
-}
-
 func (this *TaskType) Init() *TaskType {
 	this.Name = ""
 	this.rappers = make(map[string]*Rapper)
-	this.taskChan = make(chan *TaskInfo, int64(ConfJson["MaxTaskPerRapper"].(float64))*2)
+	this.taskChan = make(chan *TaskInfo, int64(ConfJson["maxTaskPerRapper"].(float64))*2)
 	this.buff[0] = list.New()
 	this.buff[1] = list.New()
 
 	return this
+}
+
+func NewTaskType() *TaskType {
+	return new(TaskType).Init()
 }
 
 func (this *TaskType) AddRapper(name string, one *Rapper) {
@@ -58,12 +57,11 @@ func (this *TaskType) ResetRapper(one *Rapper) {
 	tasks := one.ReSet()
 
 	this.lock[0].Lock()
-	defer this.lock[0].Unlock()
-
 	for _, tn := range tasks {
 		this.buff[0].PushFront(tn)
 	}
-
+	this.lock[0].Unlock()
+	
 	return
 }
 
@@ -103,7 +101,7 @@ func (this *TaskType) realUpTask() {
 		if t.sign == 'A' {
 			_, err := newTask2DB(this.Name, t.taskInfo.Tid, t.taskInfo.Rid, t.taskInfo.Info, t.stat)
 			if err != nil {
-				glog.Errorln(err)
+				glog.Errorln("NEWTASK2DB:", err.Error())
 			} else if t.stat == 2 {
 				this.lock[0].Lock()
 				this.buff[0].PushBack(t.taskInfo) // 直接入分发队列
@@ -112,7 +110,7 @@ func (this *TaskType) realUpTask() {
 		} else if t.sign == 'U' {
 			_, err := upTask2DB(this.Name, t.taskInfo.Tid, t.rapper, t.msg, t.stat)
 			if err != nil {
-				glog.Errorln(err)
+				glog.Errorln("UPTASK2DB:", err.Error())
 			}
 		}
 
@@ -127,11 +125,12 @@ func (this *TaskType) DistTask(one *Rapper, num int) []*TaskInfo {
 		go this.realDistTask()
 	})
 
-	rst := make([]*TaskInfo, num)
+	rst := make([]*TaskInfo, 0)
 	for i := 0; i < num; i++ {
-		rst[i] = <-this.taskChan
-		if rst[i] != nil {
-			one.AddTask(rst[i])
+		taskOne := <-this.taskChan
+		if taskOne != nil {
+			rst = append(rst, taskOne)
+			one.AddTask(taskOne)
 		}
 	}
 
@@ -149,7 +148,7 @@ func (this *TaskType) realDistTask() {
 			continue
 		}
 
-		tasks, err := getTasks(this.Name, int64(ConfJson["MaxTaskPerRapper"].(float64))*2)
+		tasks, err := getTasks(this.Name, int64(ConfJson["maxTaskPerRapper"].(float64)) * 2)
 		if err != nil {
 			glog.Errorln(err)
 		}
@@ -173,7 +172,7 @@ func (this *TaskType) realDistTask() {
 		idsi, _ := strconv.ParseInt(ids, 10, 64)
 		idei, _ := strconv.ParseInt(ide, 10, 64)
 		if _, err := upTaskStatByID(this.Name, idsi, idei, 2, 1); err != nil {
-			glog.Errorln(err)
+			glog.Errorln("UPDATE TASK ERR:", err.Error())
 		}
 	}
 }

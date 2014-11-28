@@ -9,25 +9,26 @@ import (
 	"github.com/golang/glog"
 )
 
+const UPTASKUSAGE = "GET /uptask?type=typename&name=rappername&tid=taskid&stat=1|-1&msg=errormsg"
+
 type UpTaskHandler struct {}
 
 func (this *UpTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		this.doGet(w, r)
 	} else {
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		this.writeErr(w, http.StatusMethodNotAllowed, []byte(UPTASKUSAGE))
 	}
 
+	glog.Flush()
 	return
 }
 
-func (this *UpTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
-	const USAGE = "GET /uptask?type=typename&name=rappername&tid=taskid&stat=1|-1&msg=errormsg"
-	
+func (this *UpTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {	
 	r.ParseForm()
 	ttype, name, tid, stat, msg := r.FormValue("type"), r.FormValue("name"), r.FormValue("tid"), r.FormValue("stat"), r.FormValue("msg")
 	if "" == ttype || "" == name || "" == stat || "" == tid {
-		this.writeErr(w, http.StatusBadRequest, []byte(USAGE))
+		this.writeErr(w, http.StatusBadRequest, []byte(UPTASKUSAGE))
 		return
 	}
 
