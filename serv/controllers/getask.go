@@ -1,26 +1,21 @@
 package controllers
 
 import (
-	"strconv"
-	"net/http"
 	"encoding/json"
+	"net/http"
+	"strconv"
 
-	. "easyTask/serv/models"
-	. "easyTask/serv/common"
-	
+	. "github.com/liuhengloveyou/easyTask/common"
+	. "github.com/liuhengloveyou/easyTask/serv/models"
+
 	"github.com/golang/glog"
 )
 
 const GETTASKUSAGE = "GET /getask?type=typename&name=rappername&num=123"
 
-type GetTaskHandler struct {}
+type GetTaskHandler struct{}
 
 func (this *GetTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if Sig != "" {
-		this.writeErr(w, http.StatusServiceUnavailable, []byte(Sig))
-		return
-	}
-	
 	if r.Method == "GET" {
 		this.doGet(w, r)
 	} else {
@@ -38,7 +33,7 @@ func (this *GetTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		this.writeErr(w, http.StatusBadRequest, []byte(GETTASKUSAGE))
 		return
 	}
-	
+
 	inum, err := strconv.Atoi(num)
 	if err != nil {
 		this.writeErr(w, http.StatusBadRequest, []byte("num err"))
@@ -68,7 +63,7 @@ func (this *GetTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		glog.Errorln("getask to mach ERR:", rapperOne.TaskSize, int(ConfJson["maxTaskPerRapper"].(float64)))
 		return
 	}
-	
+
 	rst := make([]TaskInfo, 0)
 	tasks := taskTypeOne.DistTask(rapperOne, inum)
 	for _, tn := range tasks {
@@ -76,11 +71,11 @@ func (this *GetTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 			rst = append(rst, *tn)
 		}
 	}
-	
+
 	jsonByte, _ := json.Marshal(rst)
 	glog.Infoln("getask OK: ", string(jsonByte))
 	w.Write(jsonByte)
-	
+
 	return
 }
 

@@ -9,24 +9,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/liuhengloveyou/easyTask/interfaces"
+
 	"github.com/golang/glog"
 )
 
-/*
-{
- "fid":"900499",
- "flen":15070734,
- "type":"wmv",
- "url":"http://www.upload.cn/client14081804173567259325.wmv",
- "nurl":"http://192.168.1.2:8081/ffaceup",
- "callback":"http://www.space.cn/opus/updateNfid.html"
-}
-*/
-type videoTaskInfo struct {
+// 任务描述信息
+type downloadTaskInfo struct {
 	Flen     int32  // 文件长度
 	Fid      string // 文件ID
 	Type     string // 文件类型
-	Url      string // 文件下载URL
+	URL      string // 文件下载URL
 	Nurl     string // 文件长度
 	Callback string // 任务回调
 	Tid      string // 任务ID
@@ -36,7 +29,7 @@ type videoTaskInfo struct {
 	err      error  // 处理过程中的错误信息
 }
 
-type rapperVideo struct {
+type rapperDownload struct {
 	no          int64
 	toTranscode chan *videoTaskInfo
 	toUpload    chan *videoTaskInfo
@@ -44,18 +37,18 @@ type rapperVideo struct {
 }
 
 func init() {
-	register("video", NewRapperVideo)
+	interfaces.RegisterRapper("download", NewRapperDownload)
 }
 
-func NewRapperVideo() rapper {
-	return &rapperVideo{
+func NewRapperDownload() rapper {
+	return &rapperDownload{
 		no:          time.Now().UnixNano(),
 		toTranscode: make(chan *videoTaskInfo, 5),
 		toUpload:    make(chan *videoTaskInfo, 5),
 		toUpdate:    make(chan *videoTaskInfo, 5)}
 }
 
-func (this *rapperVideo) run() {
+func (this *rapperDownload) run() {
 	uploadUrlConf := ""
 	callbackUrlConf := ""
 	if val, ok := confJson["uploadUrl"]; ok == true && val.(string) != "" {
@@ -121,7 +114,7 @@ func (this *rapperVideo) transcode() {
 	const TRANFMT = "export LANGUAGE=en_US;ffmpeg -y -v error -i %s -movflags +faststart -vcodec libx264 -profile:v main -level 3 -b:v 512k -acodec libvo_aacenc -ab 128k -vf 'movie=watermark.png[logo];[in][logo]overlay=main_w-overlay_w-5:10[out]' %s.mp4"
 	const THUMFMT = "export LANGUAGE=en_US;ffmpeg -y -v error -i %s.mp4 -y -f  image2 -ss 8.0  -vframes 1 -s 120x80 %s.jpg"
 	// const THUMFM2 = "export LANGUAGE=en_US;ffmpeg -y -v error -i %s_1.jpg -y -f image2 -vf crop=320:170:0:0 -s 200x112 %s_1.jpg"
-	
+
 	for {
 		// 取一个任务
 		oneVideoTask := <-this.toTranscode

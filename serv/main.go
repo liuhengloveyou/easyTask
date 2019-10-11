@@ -10,14 +10,12 @@ import (
 	"syscall"
 	"time"
 
-	. "easyTask/serv/common"
-	. "easyTask/serv/controllers"
-	. "easyTask/serv/models"
+	. "github.com/liuhengloveyou/easyTask/common"
+	. "github.com/liuhengloveyou/easyTask/serv/controllers"
+	. "github.com/liuhengloveyou/easyTask/serv/models"
 )
 
-func init() {
-	runtime.GOMAXPROCS(8)
-}
+var Sig string
 
 func sigHandler() {
 	c := make(chan os.Signal, 1)
@@ -31,15 +29,16 @@ func sigHandler() {
 }
 
 func main() {
+	runtime.GOMAXPROCS(8)
 	flag.Parse()
 
 	sigHandler()
-	
+
 	http.Handle("/putask", &PutTaskHandler{})
 	http.Handle("/getask", &GetTaskHandler{})
 	http.Handle("/uptask", &UpTaskHandler{})
-	http.Handle("/sayhi", &SayhiHandler{})
 	http.HandleFunc("/newtype", HandleNewTaskType)
+	http.Handle("/sayhi", &SayhiHandler{})
 	http.HandleFunc("/beat", HandleBeat)
 
 	http.Handle("/monitor", &MonitorHandler{})
@@ -51,7 +50,7 @@ func main() {
 		WriteTimeout:   10 * time.Minute,
 		MaxHeaderBytes: 1 << 20,
 	}
-	
+
 	go RapperCleaner()
 
 	fmt.Println("easytask GO...", ConfJson["listenaddr"].(string))

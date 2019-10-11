@@ -3,12 +3,12 @@ package controllers
 import (
 	"net/http"
 
-	. "easyTask/serv/models"
-	
+	. "github.com/liuhengloveyou/easyTask/serv/models"
+
 	"github.com/golang/glog"
 )
 
-type SayhiHandler struct {}
+type SayhiHandler struct{}
 
 func (this *SayhiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
@@ -20,9 +20,9 @@ func (this *SayhiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (this *SayhiHandler) doGet (w http.ResponseWriter, r *http.Request) {
+func (this *SayhiHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	const USAGE = "GET /sayhi?type=typename&name=rappername"
-	
+
 	r.ParseForm()
 	ttype, name := r.FormValue("type"), r.FormValue("name")
 	if ttype == "" || name == "" {

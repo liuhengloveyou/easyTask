@@ -3,8 +3,8 @@ package models
 import (
 	"strings"
 	"time"
-	
-	. "easyTask/serv/common"
+
+	. "github.com/liuhengloveyou/easyTask/common"
 )
 
 var TaskTypes map[string]*TaskType = make(map[string]*TaskType) // 系统中所有的任务类型
@@ -44,12 +44,12 @@ func loadTaskType() error {
 
 func GetRapper(ttype, name string) (taskType *TaskType, rapper *Rapper) {
 	ok := false
-	
+
 	taskType, ok = TaskTypes[ttype]
 	if ok == true {
 		rapper, _ = taskType.rappers[name]
 	}
-	
+
 	return
 }
 
@@ -57,7 +57,7 @@ func GetRapper(ttype, name string) (taskType *TaskType, rapper *Rapper) {
 func RapperCleaner() {
 	for {
 		time.Sleep(1 * time.Second)
-		
+
 		for _, v := range TaskTypes {
 			for k1, v1 := range v.rappers {
 				if v1.Beat(false) < 0 {

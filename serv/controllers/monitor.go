@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	. "easyTask/serv/models"
+	. "github.com/liuhengloveyou/easyTask/serv/models"
 
 	"github.com/golang/glog"
 )
@@ -82,7 +82,7 @@ func (this *MonitorHandler) doGet(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		
+
 		if _, err := UpTaskStatByTid(ttype, tid, -100); err != nil {
 			glog.Errorln(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -95,7 +95,7 @@ func (this *MonitorHandler) doGet(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		
+
 		if _, err := UpTaskStatByTid(ttype, tid, 1); err != nil {
 			glog.Errorln(err)
 			w.WriteHeader(http.StatusInternalServerError)

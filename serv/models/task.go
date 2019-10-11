@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	. "easyTask/serv/common"
+	. "github.com/liuhengloveyou/easyTask/common"
 
 	"github.com/golang/glog"
 )
@@ -61,7 +61,7 @@ func (this *TaskType) ResetRapper(one *Rapper) {
 		this.buff[0].PushFront(tn)
 	}
 	this.lock[0].Unlock()
-	
+
 	return
 }
 
@@ -148,7 +148,7 @@ func (this *TaskType) realDistTask() {
 			continue
 		}
 
-		tasks, err := getTasks(this.Name, int64(ConfJson["maxTaskPerRapper"].(float64)) * 2)
+		tasks, err := getTasks(this.Name, int64(ConfJson["maxTaskPerRapper"].(float64))*2)
 		if err != nil {
 			glog.Errorln(err)
 		}

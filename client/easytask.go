@@ -13,15 +13,9 @@ import (
 	"runtime"
 	"sync"
 	"time"
-	
+
 	"github.com/golang/glog"
 )
-
-type rapper interface {
-	run() // 开始任务
-}
-
-type rapperType func() rapper
 
 type taskInfo struct {
 	Tid  string // 任务ID
@@ -31,7 +25,6 @@ type taskInfo struct {
 
 var (
 	confJson map[string]interface{}
-	rappers  = make(map[string]rapperType)
 	tasks    chan *taskInfo
 )
 
@@ -111,7 +104,7 @@ func upload(url, fn string, para *map[string]string) ([]byte, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	defer writer.Close()
-	
+
 	if para != nil {
 		for k, v := range *para {
 			writer.WriteField(k, v)
@@ -147,7 +140,7 @@ func upload(url, fn string, para *map[string]string) ([]byte, error) {
 	} else if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("%v\r\n%v\r\n%s", resp.StatusCode, resp.Header, respBody)
 	}
-	
+
 	return respBody, nil
 }
 
@@ -159,7 +152,7 @@ func getRequest(url string, para *map[string]string) ([]byte, error) {
 	if para != nil {
 		url += "?"
 		for k, v := range *para {
-			url +=  k + "=" + v + "&"
+			url += k + "=" + v + "&"
 		}
 	}
 
@@ -279,7 +272,7 @@ func NewRapper(typeName string) (rapper, error) {
 
 func main() {
 	flag.Parse()
-	
+
 	// 向服务器打招乎
 	if err := sayHiToServ(); err != nil {
 		panic(err)

@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 
-	. "easyTask/serv/models"
-	
+	. "github.com/liuhengloveyou/easyTask/serv/models"
+
 	"github.com/golang/glog"
 )
 

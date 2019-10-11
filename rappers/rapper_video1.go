@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/liuhengloveyou/easyTask/interfaces"
+
 	"github.com/golang/glog"
 )
 
@@ -48,7 +50,7 @@ type rapperVideo1 struct {
 }
 
 func init() {
-	register("video1", NewRapperVideo1)
+	interfaces.Register("video1", NewRapperVideo1)
 }
 
 func NewRapperVideo1() rapper {

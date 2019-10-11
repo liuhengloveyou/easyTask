@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/http"
 
-	. "easyTask/serv/models"
-	. "easyTask/serv/common"
-	
+	. "github.com/liuhengloveyou/easyTask/common"
+	. "github.com/liuhengloveyou/easyTask/serv/models"
+
 	"github.com/golang/glog"
 )
 
@@ -17,11 +17,6 @@ const PUTTASKUSAGE = "GET /putask?type=typename&rid=recordid&info=taskinfo"
 type PutTaskHandler struct{}
 
 func (this *PutTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if Sig != "" {
-		this.writeErr(w, http.StatusServiceUnavailable, []byte(Sig))
-		return
-	}
-	
 	if r.Method == "GET" {
 		this.doGet(w, r)
 	} else {
@@ -32,7 +27,7 @@ func (this *PutTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (this *PutTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {	
+func (this *PutTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	ttype, rid, info := r.FormValue("type"), r.FormValue("rid"), r.FormValue("info")
 	if "" == ttype || "" == rid || "" == info {
@@ -58,11 +53,11 @@ func (this *PutTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	if outSize < int64(ConfJson["outBuffSize"].(float64)) && taskTypeOne.RapperNum() > 0 {
 		stat = 2
 	}
-	
+
 	m := md5.New()
 	io.WriteString(m, info)
 	taskid := fmt.Sprintf("%x", m.Sum(nil))
-	
+
 	taskTypeOne.NewTask(&TaskInfo{Tid: taskid, Rid: rid, Info: info}, stat)
 
 	glog.Errorf("DATA putTask: %s %s %s %s", taskid, ttype, rid, info)

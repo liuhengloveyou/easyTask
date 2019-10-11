@@ -1,17 +1,17 @@
 package controllers
 
 import (
-	"strconv"
 	"net/http"
+	"strconv"
 
-	. "easyTask/serv/models"
-	
+	. "github.com/liuhengloveyou/easyTask/serv/models"
+
 	"github.com/golang/glog"
 )
 
 const UPTASKUSAGE = "GET /uptask?type=typename&name=rappername&tid=taskid&stat=1|-1&msg=errormsg"
 
-type UpTaskHandler struct {}
+type UpTaskHandler struct{}
 
 func (this *UpTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
@@ -24,7 +24,7 @@ func (this *UpTaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (this *UpTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {	
+func (this *UpTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	ttype, name, tid, stat, msg := r.FormValue("type"), r.FormValue("name"), r.FormValue("tid"), r.FormValue("stat"), r.FormValue("msg")
 	if "" == ttype || "" == name || "" == stat || "" == tid {
@@ -57,10 +57,10 @@ func (this *UpTaskHandler) doGet(w http.ResponseWriter, r *http.Request) {
 		glog.Errorln("getask rapper nil:", ttype, name)
 		return
 	}
-	
+
 	taskTypeOne.UpTask(rapperOne, int64(stati), tid, msg)
 	glog.Infoln("upTask: ", ttype, name, tid, stat, msg)
-		
+
 	w.Write([]byte("OK"))
 
 	return
