@@ -1,4 +1,4 @@
-package interfaces
+package rappers
 
 import "fmt"
 
@@ -6,11 +6,13 @@ import "fmt"
 var rappers = make(map[string]rapperType)
 
 // rapper 需要实现的接口
-type rapper interface {
-	run() // 开始任务
+type Rapper interface {
+	Run() // 开始任务
+
+	NewTaskInfo() interface{} // 返回一个任务详情对象
 }
 
-type rapperType func() rapper
+type rapperType func() Rapper
 
 func RegisterRapper(name string, one rapperType) {
 	if one == nil {
@@ -22,7 +24,7 @@ func RegisterRapper(name string, one rapperType) {
 	rappers[name] = one
 }
 
-func NewRapper(typeName string) (rapper, error) {
+func NewRapper(typeName string) (Rapper, error) {
 	newFun, ok := rappers[typeName]
 	if ok != true {
 		return nil, fmt.Errorf("no rapper types " + typeName)

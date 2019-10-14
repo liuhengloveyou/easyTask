@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8">
+    <title>EASYTASK</title>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <link rel="stylesheet" type="text/css" href="css/task.css">
+  </head>
+  <body>
+    <!-- header -->
+    <header class="header box">
+      <h1 class="logo box-flex1">EASYTASK </h1>
+      <section class="funcArea">
+	<select id="select" class="select"></select>
+	<input type="search" id="searchTxt" class="searchTxt">
+	<button id="search" class="button">查询</button>
+	<input type="search" id="newTypeTxt" class="newTypeTxt" placeholder="字母或数字3至6位">
+	<button id="newType" class="button newTypeBtn">新增类型</button>
+      </section>
+    </header>
+    <section class="box sectionTop">
+      <div class="box-flex1"></div>
+      <div class="datatitle box">
+	<div class="new">未处理任务</div>
+	<div class="ing">正在处理任务</div>
+	<div class="error">出错任务</div>
+	<div class="rapper">工兵</div>
+      </div>
+    </section>
+    <!-- container -->
+    <div class="container">
+      <div class="main" id="insert"></div>
+    </div>
+    <!-- 弹窗主体 -->
+    <div class="modal fade" id="modal">
+      <div class="modal_header clearfix">
+	<h3 id="modal_title">任务详情</h3>
+	<button class="modal_close" id="modal_close">×</button>
+      </div>
+      <div class="modal_body" id="modal_txt">显示信息</div>
+      <div class="modal_footer clearfix" id="modal_footer">
+	<button class="modal_btn btnl modal_btn_primary" id="modal_btn">确定</button>
+	<button class="modal_btn btnl modal_btn_primary" id="redo_btn" style="display:none;">重做</button>
+	<button class="modal_btn btnl modal_btn_primary" id="del_btn" style="display:none;">删除</button>
+      </div>
+    </div>
+    <script src="js/zepto.fx.min.js"></script>
+    <script src="js/task.js"></script>
+  </body>
+</html>
+

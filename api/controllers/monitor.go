@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	. "github.com/liuhengloveyou/easyTask/serv/models"
+	. "github.com/liuhengloveyou/easyTask/models"
 
 	"github.com/golang/glog"
 )

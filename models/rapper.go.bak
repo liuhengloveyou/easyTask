@@ -21,8 +21,11 @@ func (this *Rapper) Init() *Rapper {
 }
 
 func NewRapper(name string) *Rapper {
-	one := new(Rapper).Init()
-	one.Name = name
+	one := &Rapper{
+		Name: name,
+	}
+	one.Init()
+
 	return one
 }
 

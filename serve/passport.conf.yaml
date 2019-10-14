@@ -1,0 +1,1 @@
+mysql: "root:lhisroot@tcp(127.0.0.1:3306)/taskmanaager?charset=utf8"

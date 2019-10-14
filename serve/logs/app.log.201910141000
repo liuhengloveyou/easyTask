@@ -1,0 +1,234 @@
+2019-10-14T10:01:34.388+0800	DEBUG	addTask: demo 123 123
+
+2019-10-14T10:01:34.389+0800	ERROR	AddTaskService no rapper types: %!(EXTRA string=demo)
+2019-10-14T10:01:34.389+0800	ERROR	AddTask service ERR: no rapper types demo
+
+2019-10-14T10:01:44.452+0800	DEBUG	addTask: download 123 123
+
+2019-10-14T10:01:44.453+0800	ERROR	AddTaskService info ERR: %!(EXTRA string=download)
+2019-10-14T10:01:44.453+0800	ERROR	AddTask service ERR: json: cannot unmarshal number into Go value of type rappers.DownloadTaskInfo
+
+2019-10-14T10:02:13.783+0800	DEBUG	addTask: download 123 rid:123
+
+2019-10-14T10:02:13.783+0800	ERROR	AddTaskService info ERR: %!(EXTRA string=download)
+2019-10-14T10:02:13.783+0800	ERROR	AddTask service ERR: invalid character 'r' looking for beginning of value
+
+2019-10-14T10:02:19.672+0800	DEBUG	addTask: download 123 rid:123
+
+2019-10-14T10:02:19.672+0800	ERROR	AddTaskService info ERR: %!(EXTRA string=download)
+2019-10-14T10:02:19.672+0800	ERROR	AddTask service ERR: invalid character 'r' looking for beginning of value
+
+2019-10-14T10:02:35.305+0800	DEBUG	addTask: download 123 "rid:123"
+
+2019-10-14T10:02:35.305+0800	ERROR	AddTaskService info ERR: %!(EXTRA string=download)
+2019-10-14T10:02:35.305+0800	ERROR	AddTask service ERR: json: cannot unmarshal string into Go value of type rappers.DownloadTaskInfo
+
+2019-10-14T10:02:51.464+0800	DEBUG	addTask: download 123 rid:123
+
+2019-10-14T10:02:51.464+0800	ERROR	AddTaskService info ERR: %!(EXTRA string=download)
+2019-10-14T10:02:51.464+0800	ERROR	AddTask service ERR: invalid character 'r' looking for beginning of value
+
+2019-10-14T10:04:26.240+0800	DEBUG	addTask: download 123 rid:123
+
+2019-10-14T10:04:26.241+0800	ERROR	AddTaskService info ERR: %!(EXTRA string=download)
+2019-10-14T10:04:26.241+0800	ERROR	AddTask service ERR: invalid character 'r' looking for beginning of value
+
+2019-10-14T10:22:15.765+0800	DEBUG	AddTask body: {
+    "type": "download",
+    "rid": "123",
+    "info": {
+        "rid": 1111,
+        "url": "asdlfkjalsdkfjal"
+    
+    }
+}
+2019-10-14T10:22:15.766+0800	DEBUG	AddTaskService model: &{0  123  <nil> 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   }
+2019-10-14T10:22:15.767+0800	DEBUG	[log /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 Error 1048: Column 'task_info' cannot be null]
+2019-10-14T10:22:15.768+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 1.303861ms INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 123  <nil> 1 2019-10-14 10:22:15.766536 +0800 CST m=+26.028607787 2019-10-14 10:22:15.766536 +0800 CST m=+26.028607787   ] 0]
+2019-10-14T10:22:15.768+0800	ERROR	AddTaskService ERR: Error 1048: Column 'task_info' cannot be null
+2019-10-14T10:22:15.768+0800	ERROR	AddTask service ERR: Error 1048: Column 'task_info' cannot be null
+
+2019-10-14T10:22:47.022+0800	DEBUG	AddTask body: {
+    "type": "download",
+    "rid": "123",
+    "task_info": {
+        "rid": 1111,
+        "url": "asdlfkjalsdkfjal"
+    
+    }
+}
+2019-10-14T10:22:47.022+0800	DEBUG	AddTaskService model: &{0  123  <nil> 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   }
+2019-10-14T10:22:47.029+0800	DEBUG	[log /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 Error 1048: Column 'task_info' cannot be null]
+2019-10-14T10:22:47.029+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 5.171341ms INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 123  <nil> 1 2019-10-14 10:22:47.02289 +0800 CST m=+57.284023739 2019-10-14 10:22:47.02289 +0800 CST m=+57.284023739   ] 0]
+2019-10-14T10:22:47.031+0800	ERROR	AddTaskService ERR: Error 1048: Column 'task_info' cannot be null
+2019-10-14T10:22:47.031+0800	ERROR	AddTask service ERR: Error 1048: Column 'task_info' cannot be null
+
+2019-10-14T10:24:36.097+0800	DEBUG	AddTask body: {
+    "type": "download",
+    "rid": "123",
+    "task_info": {
+        "rid": 1111,
+        "url": "asdlfkjalsdkfjal"
+    
+    }
+}
+2019-10-14T10:24:36.098+0800	DEBUG	AddTaskService model: &{0  123  map[rid:1111 url:asdlfkjalsdkfjal] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   }
+2019-10-14T10:24:36.099+0800	DEBUG	[log /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 sql: converting argument $4 type: unsupported type map[string]interface {}, a map]
+2019-10-14T10:24:36.100+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 1.170855ms INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 123  map[rid:1111 url:asdlfkjalsdkfjal] 1 2019-10-14 10:24:36.098434 +0800 CST m=+5.776624472 2019-10-14 10:24:36.098434 +0800 CST m=+5.776624472   ] 0]
+2019-10-14T10:24:36.101+0800	ERROR	AddTaskService ERR: sql: converting argument $4 type: unsupported type map[string]interface {}, a map
+2019-10-14T10:24:36.101+0800	ERROR	AddTask service ERR: sql: converting argument $4 type: unsupported type map[string]interface {}, a map
+
+2019-10-14T10:26:39.270+0800	DEBUG	AddTask body: {
+    "type": "download",
+    "rid": "123",
+    "task_info": {
+        "rid": 1111,
+        "url": "asdlfkjalsdkfjal"
+    
+    }
+}
+2019-10-14T10:26:39.272+0800	DEBUG	AddTaskService model: &{0  123  [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 10 32 32 32 32 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   }
+2019-10-14T10:26:39.280+0800	DEBUG	[log /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:27 Error 1062: Duplicate entry '' for key 'inx_tid']
+2019-10-14T10:26:39.281+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:27 7.370868ms INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 123  [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 10 32 32 32 32 125] 1 2019-10-14 10:26:39.272366 +0800 CST m=+5.328674394 2019-10-14 10:26:39.272366 +0800 CST m=+5.328674394   ] 0]
+2019-10-14T10:26:39.283+0800	ERROR	AddTaskService ERR: Error 1062: Duplicate entry '' for key 'inx_tid'
+2019-10-14T10:26:39.283+0800	ERROR	AddTask service ERR: Error 1062: Duplicate entry '' for key 'inx_tid'
+
+2019-10-14T10:27:04.481+0800	DEBUG	AddTask body: {
+    "type": "download",
+    "rid": "123",
+    "task_info": {
+        "rid": 111,
+        "url": "asdlfkjalsdkfjal"
+    
+    }
+}
+2019-10-14T10:27:04.482+0800	DEBUG	AddTaskService model: &{0  123  [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 10 32 32 32 32 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   }
+2019-10-14T10:27:04.491+0800	DEBUG	[log /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:27 Error 1062: Duplicate entry '' for key 'inx_tid']
+2019-10-14T10:27:04.491+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:27 5.678205ms INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 123  [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 10 32 32 32 32 125] 1 2019-10-14 10:27:04.482672 +0800 CST m=+30.538225518 2019-10-14 10:27:04.482672 +0800 CST m=+30.538225518   ] 0]
+2019-10-14T10:27:04.493+0800	ERROR	AddTaskService ERR: Error 1062: Duplicate entry '' for key 'inx_tid'
+2019-10-14T10:27:04.494+0800	ERROR	AddTask service ERR: Error 1062: Duplicate entry '' for key 'inx_tid'
+
+2019-10-14T10:27:41.960+0800	DEBUG	AddTask body: {
+    "type": "download",
+    "rid": "123",
+    "task_info": {
+        "rid": 111,
+        "url": "asdlfkjalsdkfjal"
+    
+    }
+}
+2019-10-14T10:27:41.960+0800	DEBUG	AddTaskService model: &{0  123  [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 10 32 32 32 32 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   }
+2019-10-14T10:27:41.961+0800	DEBUG	[log /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:27 Error 1062: Duplicate entry '123' for key 'inx_rid']
+2019-10-14T10:27:41.962+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:27 937.788µs INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 123  [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 10 32 32 32 32 125] 1 2019-10-14 10:27:41.960838 +0800 CST m=+68.015268514 2019-10-14 10:27:41.960838 +0800 CST m=+68.015268514   ] 0]
+2019-10-14T10:27:41.963+0800	ERROR	AddTaskService ERR: Error 1062: Duplicate entry '123' for key 'inx_rid'
+2019-10-14T10:27:41.963+0800	ERROR	AddTask service ERR: Error 1062: Duplicate entry '123' for key 'inx_rid'
+
+2019-10-14T10:27:58.094+0800	DEBUG	AddTask body: {
+    "type": "download",
+    "rid": "120",
+    "task_info": {
+        "rid": 111,
+        "url": "asdlfkjalsdkfjal"
+    
+    }
+}
+2019-10-14T10:27:58.094+0800	DEBUG	AddTaskService model: &{0  120  [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 10 32 32 32 32 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   }
+2019-10-14T10:27:58.096+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:27 931.568µs INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 120  [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 10 32 32 32 32 125] 1 2019-10-14 10:27:58.09495 +0800 CST m=+84.148897192 2019-10-14 10:27:58.09495 +0800 CST m=+84.148897192   ] 1]
+2019-10-14T10:27:58.102+0800	INFO	AddTaskService: 5 %!s(<nil>)
+
+2019-10-14T10:27:58.103+0800	INFO	AddTask OK: 5.
+%!(EXTRA []uint8=[123 10 32 32 32 32 34 116 121 112 101 34 58 32 34 100 111 119 110 108 111 97 100 34 44 10 32 32 32 32 34 114 105 100 34 58 32 34 49 50 48 34 44 10 32 32 32 32 34 116 97 115 107 95 105 110 102 111 34 58 32 123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 10 32 32 32 32 125 10 125])
+2019-10-14T10:29:59.942+0800	DEBUG	AddTask body: {
+    "type": "download",
+    "rid": "120",
+    "task_info": {
+        "rid": 111,
+        "url": "asdlfkjalsdkfjal"
+    
+    }
+}
+2019-10-14T10:29:59.943+0800	ERROR	AddTaskService no rapper types: %!(EXTRA string=)
+2019-10-14T10:29:59.944+0800	ERROR	AddTask service ERR: no rapper types 
+
+2019-10-14T10:31:04.586+0800	DEBUG	AddTask body: {
+    "type": "download",
+    "rid": "120",
+    "task_info": {
+        "rid": 111,
+        "url": "asdlfkjalsdkfjal"
+    
+    }
+}
+2019-10-14T10:31:04.588+0800	DEBUG	AddTaskService model: &{0  120  [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 10 32 32 32 32 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   }
+2019-10-14T10:31:04.589+0800	ERROR	AddTaskService no rapper types: 
+
+2019-10-14T10:31:04.589+0800	ERROR	AddTask service ERR: no rapper types 
+
+2019-10-14T10:34:39.517+0800	DEBUG	AddTask body: {
+"rid": "10",
+"task_type": "download",
+    "task_info": {
+        "rid": 1111,
+        "url": "asdlfkjalsdkfjal"
+}
+}
+2019-10-14T10:34:39.518+0800	DEBUG	AddTaskService model: &{0  10 download [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   }
+2019-10-14T10:34:39.518+0800	ERROR	AddTaskService info ERR: %!(EXTRA *models.Task=&{0  10 download [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   })
+2019-10-14T10:34:39.518+0800	ERROR	AddTask service ERR: json: cannot unmarshal number into Go struct field DownloadTaskInfo.rid of type string
+
+2019-10-14T10:35:56.120+0800	DEBUG	AddTask body: {
+"rid": "10",
+"task_type": "download",
+    "task_info": {
+        "rid": 1111,
+        "url": "asdlfkjalsdkfjal"
+}
+}
+2019-10-14T10:35:56.121+0800	DEBUG	AddTaskService model: &{0  10 download [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   }
+2019-10-14T10:35:56.121+0800	ERROR	AddTaskService info ERR: %!(EXTRA *models.Task=&{0  10 download [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   })
+2019-10-14T10:35:56.121+0800	ERROR	AddTask service ERR: json: cannot unmarshal number into Go struct field DownloadTaskInfo.rid of type string
+
+2019-10-14T10:35:59.199+0800	DEBUG	AddTask body: {
+    "rid": "10",
+    "task_type": "download",
+    "task_info": {
+        "rid": 1111,
+        "url": "asdlfkjalsdkfjal"
+    }
+}
+2019-10-14T10:35:59.199+0800	DEBUG	AddTaskService model: &{0  10 download [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   }
+2019-10-14T10:35:59.200+0800	ERROR	AddTaskService info ERR: %!(EXTRA *models.Task=&{0  10 download [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 49 49 49 49 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   })
+2019-10-14T10:35:59.200+0800	ERROR	AddTask service ERR: json: cannot unmarshal number into Go struct field DownloadTaskInfo.rid of type string
+
+2019-10-14T10:36:29.616+0800	DEBUG	AddTask body: {
+    "rid": "10",
+    "task_type": "download",
+    "task_info": {
+        "rid": "1111",
+        "url": "asdlfkjalsdkfjal"
+    }
+}
+2019-10-14T10:36:29.616+0800	DEBUG	AddTaskService model: &{0  10 download [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 34 49 49 49 49 34 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   }
+2019-10-14T10:36:29.616+0800	DEBUG	AddTaskService model: &{0  10 download [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 34 49 49 49 49 34 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   } &{ 1111  asdlfkjalsdkfjal 0}
+2019-10-14T10:36:29.619+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:27 1.447992ms INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 10 download [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 34 49 49 49 49 34 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 125] 1 2019-10-14 10:36:29.617069 +0800 CST m=+328.357840825 2019-10-14 10:36:29.617069 +0800 CST m=+328.357840825   ] 1]
+2019-10-14T10:36:29.622+0800	INFO	AddTaskService: 6 %!s(<nil>)
+
+2019-10-14T10:36:29.623+0800	INFO	AddTask OK: 6.
+%!(EXTRA []uint8=[123 10 32 32 32 32 34 114 105 100 34 58 32 34 49 48 34 44 10 32 32 32 32 34 116 97 115 107 95 116 121 112 101 34 58 32 34 100 111 119 110 108 111 97 100 34 44 10 32 32 32 32 34 116 97 115 107 95 105 110 102 111 34 58 32 123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 34 49 49 49 49 34 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 125 10 125])
+2019-10-14T10:38:04.781+0800	DEBUG	AddTask body: {
+    "rid": "10",
+    "task_type": "download",
+    "task_info": {
+        "rid": "1111",
+        "url": "asdlfkjalsdkfjal"
+    }
+}
+2019-10-14T10:38:04.784+0800	DEBUG	AddTaskService model: &{0  10 download [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 34 49 49 49 49 34 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 125] 0 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   }
+2019-10-14T10:38:04.784+0800	DEBUG	AddTaskService model: &models.Task{Id:0, Tid:"", Rid:"10", TaskType:"download", TaskInfo:common.JSON{0x7b, 0xa, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x22, 0x72, 0x69, 0x64, 0x22, 0x3a, 0x20, 0x22, 0x31, 0x31, 0x31, 0x31, 0x22, 0x2c, 0xa, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x22, 0x75, 0x72, 0x6c, 0x22, 0x3a, 0x20, 0x22, 0x61, 0x73, 0x64, 0x6c, 0x66, 0x6b, 0x6a, 0x61, 0x6c, 0x73, 0x64, 0x6b, 0x66, 0x6a, 0x61, 0x6c, 0x22, 0xa, 0x20, 0x20, 0x20, 0x20, 0x7d}, Stat:0, AddTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)}, UpdateTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)}, Rapper:"", Client:"", Remark:""}
+&rappers.DownloadTaskInfo{Tid:"", Rid:"1111", Type:"", URL:"asdlfkjalsdkfjal", Flen:0}
+
+2019-10-14T10:38:04.792+0800	DEBUG	[log /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:27 Error 1062: Duplicate entry '10' for key 'inx_rid']
+2019-10-14T10:38:04.793+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:27 7.705983ms INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 10 download [123 10 32 32 32 32 32 32 32 32 34 114 105 100 34 58 32 34 49 49 49 49 34 44 10 32 32 32 32 32 32 32 32 34 117 114 108 34 58 32 34 97 115 100 108 102 107 106 97 108 115 100 107 102 106 97 108 34 10 32 32 32 32 125] 1 2019-10-14 10:38:04.784643 +0800 CST m=+6.530011273 2019-10-14 10:38:04.784643 +0800 CST m=+6.530011273   ] 0]
+2019-10-14T10:38:04.795+0800	ERROR	AddTaskService ERR: Error 1062: Duplicate entry '10' for key 'inx_rid'
+2019-10-14T10:38:04.795+0800	ERROR	AddTask service ERR: Error 1062: Duplicate entry '10' for key 'inx_rid'
+

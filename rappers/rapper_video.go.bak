@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/liuhengloveyou/easyTask/interfaces"
-
 	"github.com/golang/glog"
 )
 
@@ -46,10 +44,10 @@ type rapperVideo struct {
 }
 
 func init() {
-	interfaces.Register("video", NewRapperVideo)
+	RegisterRapper("video", NewRapperVideo)
 }
 
-func NewRapperVideo() rapper {
+func NewRapperVideo() Rapper {
 	return &rapperVideo{
 		no:          time.Now().UnixNano(),
 		toTranscode: make(chan *videoTaskInfo, 5),

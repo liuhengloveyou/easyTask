@@ -1,0 +1,45 @@
+2019-10-14T09:27:05.531+0800	DEBUG	addTask: demo 123 123
+
+2019-10-14T09:27:05.532+0800	DEBUG	AddTaskService model: demo123123
+2019-10-14T09:28:23.141+0800	DEBUG	addTask: demo 123 123
+
+2019-10-14T09:28:23.142+0800	DEBUG	AddTaskService model: demo123123
+2019-10-14T09:29:59.678+0800	DEBUG	addTask: demo 123 123
+
+2019-10-14T09:29:59.679+0800	DEBUG	AddTaskService model: demo123123
+2019-10-14T09:32:32.030+0800	DEBUG	addTask: demo 123 123
+
+2019-10-14T09:32:32.032+0800	DEBUG	AddTaskService model: demo123123
+2019-10-14T09:32:32.046+0800	DEBUG	[log /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 Error 1054: Unknown column 'task_info' in 'field list']
+2019-10-14T09:32:32.046+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 12.762356ms INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 123 demo 123  0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   ] 0]
+2019-10-14T09:32:32.046+0800	ERROR	AddTaskService ERR: Error 1054: Unknown column 'task_info' in 'field list'
+2019-10-14T09:32:32.046+0800	ERROR	AddTask service ERR: Error 1054: Unknown column 'task_info' in 'field list'
+
+2019-10-14T09:33:25.247+0800	DEBUG	addTask: demo 123 123
+
+2019-10-14T09:33:25.247+0800	DEBUG	AddTaskService model: demo123123
+2019-10-14T09:33:25.248+0800	DEBUG	[log /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 Error 1054: Unknown column 'add_time' in 'field list']
+2019-10-14T09:33:25.249+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 1.259633ms INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 123 demo 123  0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   ] 0]
+2019-10-14T09:33:25.249+0800	ERROR	AddTaskService ERR: Error 1054: Unknown column 'add_time' in 'field list'
+2019-10-14T09:33:25.249+0800	ERROR	AddTask service ERR: Error 1054: Unknown column 'add_time' in 'field list'
+
+2019-10-14T09:33:51.610+0800	DEBUG	addTask: demo 123 123
+
+2019-10-14T09:33:51.611+0800	DEBUG	AddTaskService model: demo123123
+2019-10-14T09:33:51.620+0800	DEBUG	[log /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 Error 1366: Incorrect integer value: '' for column 'stat' at row 1]
+2019-10-14T09:33:51.621+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 8.232975ms INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 123 demo 123  0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   ] 0]
+2019-10-14T09:33:51.621+0800	ERROR	AddTaskService ERR: Error 1366: Incorrect integer value: '' for column 'stat' at row 1
+2019-10-14T09:33:51.621+0800	ERROR	AddTask service ERR: Error 1366: Incorrect integer value: '' for column 'stat' at row 1
+
+2019-10-14T09:34:51.244+0800	DEBUG	addTask: demo 123 123
+
+2019-10-14T09:34:51.245+0800	DEBUG	AddTaskService model: demo123123
+2019-10-14T09:34:51.249+0800	DEBUG	[log /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 Error 1292: Incorrect datetime value: '0000-00-00' for column 'add_time' at row 1]
+2019-10-14T09:34:51.250+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 3.39318ms INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 123 demo 123 1 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC   ] 0]
+2019-10-14T09:34:51.251+0800	ERROR	AddTaskService ERR: Error 1292: Incorrect datetime value: '0000-00-00' for column 'add_time' at row 1
+2019-10-14T09:34:51.252+0800	ERROR	AddTask service ERR: Error 1292: Incorrect datetime value: '0000-00-00' for column 'add_time' at row 1
+
+2019-10-14T09:36:01.707+0800	DEBUG	addTask: demo 123 123
+
+2019-10-14T09:36:01.709+0800	DEBUG	AddTaskService model: demo123123
+2019-10-14T09:36:01.717+0800	DEBUG	[sql /Users/liuheng/go/src/github.com/liuhengloveyou/easyTask/models/tasks.go:25 5.216488ms INSERT  INTO `tasks` (`tid`,`rid`,`task_type`,`task_info`,`stat`,`add_time`,`update_time`,`rapper`,`client`,`remark`) VALUES (?,?,?,?,?,?,?,?,?,?) [ 123 demo 123 1 2019-10-14 09:36:01.710167 +0800 CST m=+3.323236939 2019-10-14 09:36:01.710167 +0800 CST m=+3.323236939   ] 1]

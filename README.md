@@ -6,23 +6,77 @@
 
 1. 部署服务端
 
+
+
+## 配置
+
+1. **服务端**
+
+```yaml
+pid: "/tmp/easytask.pid"
+addr: ":8080" # 服务监听地址和端口
+mysql: "root:lhisroot@tcp(127.0.0.1:3306)/taskmanager?charset=utf8" 
+log_dir: "./logs/" # 日志目录
+```
+
+2. **客户端**
+
+```
+
+```
+
+
+
 ## 接口:
 
-##### 1. 添加任务
+#### 1. 添加任务
 
-    GET /putask?type=任务类型名&rid=记录ID&info=任务描述
-    成功返回任务ID;出错返回错误信息串
+```
+curl -v -X PUT \
+--cookie "gsessionid=MTU0asdf" \
+-d '{
+    "rid": "10",
+    "task_type": "download",
+    "task_info": {
+        "rid": "1111",
+        "url": "asdlfkjalsdkfjal"
+    }
+}' \
+"http://127.0.0.1:8080/putask"
+    
+成功应答:
+Body:
+{
+    "code": 0,
+    "data": 1 # 记录ID
+}
+    
+错误应答:
+Body:
+{
+    "code":-1,
+    "errmsg":"错误信息" 
+}
+````
 
-##### 2. 获取任务
 
-    GET /getask?type=任务类型名&name=工兵名字&num=取任务条数
+
+### 2. 获取任务
+
+    curl "http://127.0.0.1:8080/querytask?type=download&name=工兵名字&num=10"
     成功返回任务信息:[{"Tid":"任务ID", "Rid":"记录ID", "Info":"任务内容"},...];出错返回错误信息串
 
-##### 3. 更新任务
+
+
+#### 3. 更新任务
+
     GET /uptask?type=任务类型名&name=工兵名字&tid=任务ID&stat=任务状态(成功=1|失败=-1)&msg=错误信息
     成功返回"OK";出错返回错误信息串
 
-##### 4. 向服务器打招乎
+
+
+#### 4. 向服务器打招乎
+
 工兵启动要先向服务器打招乎才能取任务,相当于注册的动作
 	GET /sayhi?type=任务类型名&name=工兵名字
 	成功返回"OK";出错返回错误信息串

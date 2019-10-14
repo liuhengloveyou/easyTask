@@ -4,13 +4,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/liuhengloveyou/easyTask/interfaces"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/liuhengloveyou/easyTask/interfaces"
 
 	"github.com/golang/glog"
 )
@@ -50,10 +49,10 @@ type rapperVideo1 struct {
 }
 
 func init() {
-	interfaces.Register("video1", NewRapperVideo1)
+	RegisterRapper("video1", NewRapperVideo1)
 }
 
-func NewRapperVideo1() rapper {
+func NewRapperVideo1() Rapper {
 	return &rapperVideo1{
 		no:          time.Now().UnixNano(),
 		toTranscode: make(chan *videoTaskInfo1, 5),
