@@ -1,14 +1,24 @@
 package rappers
 
-import ()
+import (
+	"encoding/json"
+	"time"
+	"net/http"
+	"context"
+
+	"github.com/liuhengloveyou/easyTask/common"
+	"github.com/liuhengloveyou/easyTask/models"
+
+	gocommon "github.com/liuhengloveyou/go-common"
+)
+
+const TASK_TYPE = "download"
 
 // 任务描述信息
 type DownloadTaskInfo struct {
-	Tid  string `json:"tid"` // 任务ID
-	Rid  string `json:"rid"` // 记录ID
+	Rid  string `json:"rid"`   // 记录ID
 	Type string `json:"ftype"` // 文件类型
-	URL  string `json:"url"`  // 文件下载URL
-	Flen int32  // 文件长度
+	URL  string `json:"url"`   // 文件下载URL
 }
 
 type DownloadRapper struct {
@@ -27,63 +37,40 @@ func (p *DownloadRapper) NewTaskInfo() interface{} {
 }
 
 func (this *DownloadRapper) Run() {
-	//uploadUrlConf := ""
-	//callbackUrlConf := ""
-	//if val, ok := confJson["uploadUrl"]; ok == true && val.(string) != "" {
-	//	uploadUrlConf = val.(string)
-	//}
-	//if val, ok := confJson["callbackUrl"]; ok == true && val.(string) != "" {
-	//	callbackUrlConf = val.(string)
-	//}
-	//
-	//go this.transcode()
-	//go this.uploadMp4()
-	//go this.updateTask()
-	//
-	//for {
-	//	// 取一个任务
-	//	oneTask := oneTask()
-	//	oneVideoTask := &videoTaskInfo{Tid: oneTask.Tid, Rid: oneTask.Rid}
-	//	if oneVideoTask.Tid == "" || oneVideoTask.Rid == "" {
-	//		glog.Errorln("taskERR: ", oneTask)
-	//		continue
-	//	}
-	//	glog.Infof("deal oneTask: ", this.no, oneTask)
-	//
-	//	taskInfo, err := base64.StdEncoding.DecodeString(oneTask.Info)
-	//	if err != nil {
-	//		oneVideoTask.err = fmt.Errorf("taskERR: %s", err.Error())
-	//		goto END
-	//	}
-	//
-	//	err = json.Unmarshal(taskInfo, oneVideoTask)
-	//	if err != nil {
-	//		oneVideoTask.err = fmt.Errorf("downloadERR: %s", err.Error())
-	//		goto END
-	//	}
-	//
-	//	// 覆盖配置参数
-	//	if uploadUrlConf != "" {
-	//		oneVideoTask.Nurl = uploadUrlConf
-	//	}
-	//	if callbackUrlConf != "" {
-	//		oneVideoTask.Callback = callbackUrlConf
-	//	}
-	//
-	//	// 下载文件
-	//	glog.Infoln("download oneTask begin: ", this.no, oneVideoTask.toString())
-	//	err = download(oneVideoTask.Url, confJson["tmpdir"].(string)+oneVideoTask.Tid)
-	//	if err != nil {
-	//		oneVideoTask.err = fmt.Errorf("downloadERR: %s", err.Error())
-	//	}
-	//
-	//END: // 下载完成
-	//	if oneVideoTask.err == nil {
-	//		glog.Warningln("downloadOK: ", this.no, oneVideoTask.toString())
-	//		this.toTranscode <- oneVideoTask
-	//	} else {
-	//		glog.Errorln("downloadERR:", this.no, oneVideoTask.toString())
-	//		this.toUpdate <- oneVideoTask
-	//	}
-	//}
+	taskQueue := models.GetTaskQueue(TASK_TYPE)
+
+	for {
+		// 取一个任务
+		oneTask := taskQueue.GetTaskFromServe(common.ClientConfig.TaskServeAddr, common.ClientConfig.TaskType, 1)
+
+		taskInfo := &DownloadTaskInfo{}
+		if err := json.Unmarshal(oneTask.TaskInfo, taskInfo); err != nil {
+			common.Logger.Sugar().Errorf("task info ERR: ", oneTask, err.Error())
+			time.Sleep(time.Second)
+			continue
+		}
+		common.Logger.Sugar().Debugf("one newtask: %#v %v %v\n", oneTask.ID, oneTask.Rid, taskInfo.URL)
+
+		// 下载文件
+		downer := gocommon.Downloader{
+			URL: taskInfo.URL,
+			DstPath: "./dist/" + oneTask.Rid + taskInfo.Type,
+		}
+		common.Logger.Sugar().Infof("downing %v\n", downer.URL)
+		resp, err := downer.Download(context.Background())
+		if err != nil || resp.StatusCode != http.StatusOK {
+			oneTask.Stat = models.TaskStatusERR
+			oneTask.Remark = err.Error() + resp.Status
+		}else {
+			oneTask.Stat = models.TaskStatusOK
+			oneTask.Remark = oneTask.Rid + taskInfo.Type
+		}
+
+		err = UpdateTaskToServe(oneTask)
+		if err != nil {
+			panic(err)
+		}
+
+		common.Logger.Sugar().Infof("task end: %v %v %v %v\n\n", oneTask.ID, oneTask.Rid, oneTask.Stat, taskInfo.URL)
+	}
 }

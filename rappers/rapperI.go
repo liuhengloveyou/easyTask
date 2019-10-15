@@ -1,6 +1,15 @@
 package rappers
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"github.com/liuhengloveyou/easyTask/common"
+	"github.com/liuhengloveyou/easyTask/models"
+
+	gocommon "github.com/liuhengloveyou/go-common"
+)
 
 // 系统里所有的rapper类型
 var rappers = make(map[string]rapperType)
@@ -31,4 +40,28 @@ func NewRapper(typeName string) (Rapper, error) {
 	}
 
 	return newFun(), nil
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+// 客户端更新任务状态
+func UpdateTaskToServe(task models.Task) error {
+	if task.ID <= 0 ||
+		(task.Stat < models.TaskStatusNew || task.Stat > models.TaskStatusERR) ||
+		task.UpdateTime.Year() == 0 {
+		return fmt.Errorf("UpdateTaskToServe param ERR")
+	}
+
+	body, _ := json.Marshal(task)
+
+	resp, _, err := gocommon.PostRequest(common.ClientConfig.TaskServeAddr+"/updatetask", nil, nil, body)
+	if err != nil {
+		return fmt.Errorf("updateTaskToServe ERR: %s", err.Error())
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("updateTaskToServe status ERR: %d", resp.StatusCode)
+	}
+
+	return nil
 }

@@ -1,28 +1,131 @@
 package models
 
 import (
+	"database/sql"
+
 	"github.com/liuhengloveyou/easyTask/common"
 
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
-	"github.com/jinzhu/gorm"
 )
 
+const (
+	TaskStatusNew = iota
+	TaskStatusSend
+	TaskStatusOK
+	TaskStatusERR
+)
 
 var (
 	logger *zap.SugaredLogger
-	db     *gorm.DB
+	db     *sqlx.DB
 )
 
-func InitDB() error {
-	logger = common.Logger.Sugar()
+type DAOInterface interface {
+	Insert(tx *sql.Tx) (sql.Result, error)
+	Update(tx *sql.Tx) (sql.Result, error)
+	Delete(tx *sql.Tx) (sql.Result, error)
+}
 
-	var err error
-	if db, err = gorm.Open("mysql", common.ServeConfig.Mysql); err != nil {
-		return err
+func init() {
+	logger = common.Logger.Sugar()
+}
+
+func InitDB() error {
+	var e error
+	if db, e = sqlx.Connect("mysql", common.ServeConfig.Mysql); e != nil {
+		return e
+	}
+	db.SetMaxOpenConns(2000)
+	db.SetMaxIdleConns(1000)
+	if e = db.Ping(); e != nil {
+		return e
 	}
 
-	db.SetLogger(&common.MyLogger{})
-	db.LogMode(true)
-
 	return nil
+}
+
+func Insert(tx *sql.Tx, model DAOInterface) (rst sql.Result, e error) {
+	var _tx *sql.Tx
+
+	if tx != nil {
+		_tx = tx
+	} else {
+		if _tx, e = db.Begin(); e != nil {
+			return nil, e
+		}
+
+		defer Rollback(_tx)
+	}
+
+	rst, e = model.Insert(tx)
+
+	if tx != _tx {
+		if e = _tx.Commit(); e != nil {
+			logger.Errorf("tx.Commit ERR: ", e.Error())
+		}
+	}
+
+	return
+}
+
+func Delete(tx *sql.Tx, model DAOInterface) (rst sql.Result, e error) {
+	var _tx *sql.Tx
+
+	if tx != nil {
+		_tx = tx
+	} else {
+		if _tx, e = db.Begin(); e != nil {
+			return nil, e
+		}
+
+		defer Rollback(_tx)
+	}
+
+	rst, e = model.Delete(tx)
+
+	if tx != _tx {
+		if e = _tx.Commit(); e != nil {
+			logger.Errorf("tx.Commit ERR: ", e.Error())
+		}
+	}
+
+	return
+}
+
+func Update(tx *sql.Tx, model DAOInterface) (rst sql.Result, e error) {
+	var _tx *sql.Tx
+
+	if tx != nil {
+		_tx = tx
+	} else {
+		if _tx, e = db.Begin(); e != nil {
+			return nil, e
+		}
+
+		defer Rollback(_tx)
+	}
+
+	rst, e = model.Update(_tx)
+
+	if tx != _tx {
+		if e = _tx.Commit(); e != nil {
+			logger.Errorf("tx.Commit ERR: ", e.Error())
+		}
+	}
+
+	return
+}
+
+func BeginTx() (*sql.Tx, error) {
+	return db.Begin()
+}
+
+// defer Rollback(_tx)
+func Rollback(tx *sql.Tx) {
+	err := tx.Rollback()
+	if err != sql.ErrTxDone && err != nil {
+		logger.Errorf("tx.Rollback ERR: ", err.Error())
+	}
 }

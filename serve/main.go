@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/signal"
 	"runtime"
 	"syscall"
-	"math/rand"
 	"time"
 
 	"github.com/liuhengloveyou/easyTask/api"

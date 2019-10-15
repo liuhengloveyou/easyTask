@@ -1,48 +1,38 @@
 package api
 
 import (
-	"github.com/julienschmidt/httprouter"
+	"io/ioutil"
 	"net/http"
+
+	"github.com/liuhengloveyou/easyTask/services"
+
+	"github.com/julienschmidt/httprouter"
+	gocommon "github.com/liuhengloveyou/go-common"
 )
 
 func UpdateTaskAPI(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	//r.ParseForm()
-	//ttype, name, tid, stat, msg := r.FormValue("type"), r.FormValue("name"), r.FormValue("tid"), r.FormValue("stat"), r.FormValue("msg")
-	//if "" == ttype || "" == name || "" == stat || "" == tid {
-	//	this.writeErr(w, http.StatusBadRequest, []byte(UPTASKUSAGE))
-	//	return
-	//}
-	//
-	//stati, err := strconv.Atoi(stat)
-	//if nil != err || (stati != -1 && stati != 1) {
-	//	this.writeErr(w, http.StatusBadRequest, []byte("request param stat err"))
-	//	glog.Infoln("stat ERR: ", stat)
-	//	return
-	//}
-	//if -1 == stati && "" == msg {
-	//	this.writeErr(w, http.StatusBadRequest, []byte("request param msg err"))
-	//	glog.Errorln("msg nil: ", stat)
-	//	return
-	//}
-	//if 1 == stati {
-	//	stati = 3
-	//}
-	//
-	//taskTypeOne, rapperOne := GetRapper(ttype, name)
-	//if taskTypeOne == nil {
-	//	this.writeErr(w, http.StatusBadRequest, []byte("no such task type"))
-	//	glog.Errorln("putask type err:", ttype)
-	//	return
-	//} else if rapperOne == nil {
-	//	this.writeErr(w, http.StatusBadRequest, []byte("no such rapper"))
-	//	glog.Errorln("getask rapper nil:", ttype, name)
-	//	return
-	//}
-	//
-	//taskTypeOne.UpTask(rapperOne, int64(stati), tid, msg)
-	//glog.Infoln("upTask: ", ttype, name, tid, stat, msg)
-	//
-	//w.Write([]byte("OK"))
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		logger.Errorf("UpdateTaskAPI body ERR: ", err)
+		gocommon.HttpErr(w, http.StatusOK, -1, "读取数据出错")
+		return
+	}
+
+	logger.Debug("UpdateTaskAPI body: ", string(body))
+
+	if string(body) == "" {
+		logger.Errorf("UpdateTaskAPI requst ERR")
+		gocommon.HttpErr(w, http.StatusOK, -1, "读取数据出错")
+		return
+	}
+
+	if err = services.UpdateTaskService(body); err != nil {
+		logger.Errorf("UpdateTaskAPI service ERR: %v\n", err.Error())
+		gocommon.HttpErr(w, http.StatusOK, -1, err.Error())
+		return
+	}
+
+	gocommon.HttpErr(w, http.StatusOK, 0, "")
 
 	return
 }

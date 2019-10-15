@@ -1,0 +1,5 @@
+pid: "/tmp/taskclient.pid"
+task_serve_addr: "http://music.fuzu.pro/task/" # "http://127.0.0.1:8080"
+task_type: "download"
+flow: 1
+log_dir: "./logs/"

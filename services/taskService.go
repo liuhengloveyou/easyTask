@@ -1,7 +1,6 @@
 package services
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -32,14 +31,11 @@ func AddTaskService(body []byte) (id int64, err error) {
 	if err = json.Unmarshal([]byte(task.TaskInfo), taskInfo); err != nil {
 		logger.Errorf("AddTaskService info ERR: ", task)
 		return
-	}
+		}
 
 	logger.Debugf("AddTaskService model: %#v\n%#v\n", task, taskInfo)
 
-	now := sql.NullTime{
-		Time:  time.Now(),
-		Valid: true,
-	}
+	now := time.Now()
 	task.Stat = 1
 	task.AddTime = now
 	task.UpdateTime = now
@@ -65,23 +61,43 @@ func QueryTaskService(taskType string, num int) (tasks []models.Task, err error)
 		return
 	}
 
-	model := models.Task{
-		TaskType: taskType,
-	}
+	taskQueue := models.GetTaskQueue(taskType)
 
-	tasks, err = model.Query(num)
-	if err != nil {
-		logger.Errorf("QueryTaskService db ERR:", err.Error())
-		return nil, fmt.Errorf("服务错误")
+	tasks = make([]models.Task, 0)
+	for i := 0; i < num; i++ {
+		one := taskQueue.DistTask()
+		if one.ID < 0 {
+			break
+		}
+		tasks = append(tasks, one)
 	}
 
 	return tasks, nil
 }
 
 // 更新任务状态
-func UpdateTaskService() (tasks []models.Task, err error) {
+func UpdateTaskService(body []byte) error {
+	task := &models.Task{}
+	if e := json.Unmarshal(body, task); e != nil {
+		logger.Errorf("UpdateTaskService body ERR: %v\n", e.Error())
+		return e
+	}
 
-	return nil, nil
+	logger.Debug("UpdateTaskService model: ", task)
+
+	rows, err := task.Update()
+	if err != nil {
+		logger.Error("UpdateTaskService ERR: ", err.Error())
+		return err
+	}
+	if rows != 1 {
+		logger.Error("UpdateTaskService rows ERR: ", rows)
+		return fmt.Errorf("更新错误 %d", rows)
+	}
+
+	logger.Infof("UpdateTaskService OK", task.ID, task.Rid, task.Stat, task.Rid, task.UpdateTime)
+
+	return nil
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

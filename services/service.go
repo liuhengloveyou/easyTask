@@ -10,6 +10,6 @@ var (
 	logger *zap.SugaredLogger
 )
 
-func init () {
+func init() {
 	logger = common.Logger.Sugar()
 }

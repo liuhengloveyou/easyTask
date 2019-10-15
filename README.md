@@ -21,8 +21,12 @@ log_dir: "./logs/" # 日志目录
 
 2. **客户端**
 
-```
-
+```yaml
+pid: "/tmp/taskclient.pid"
+task_serve_addr: "http://127.0.0.1:8080"
+task_type: "download"
+flow: 1
+log_dir: "./logs/"
 ```
 
 
@@ -64,15 +68,64 @@ Body:
 ### 2. 获取任务
 
     curl "http://127.0.0.1:8080/querytask?type=download&name=工兵名字&num=10"
-    成功返回任务信息:[{"Tid":"任务ID", "Rid":"记录ID", "Info":"任务内容"},...];出错返回错误信息串
+    
+    成功应答:
+    {
+        "code":0,
+        "data":[
+            {
+                "id":6,
+                "tid":"",
+                "rid":"10",
+                "task_type":"download",
+                "task_info":{
+                    "rid":"1111",
+                    "url":"asdlfkjalsdkfjal"
+                },
+                "stat":1,
+                "add_time": "2019-10-14T02:36:30Z",
+                "update_time": "2019-10-14T02:36:30Z",
+                "rapper":"",
+                "client":"",
+                "remark":""
+            }
+        ]
+    }
+    
+    错误应答:
+    Body:
+    {
+        "code":-1,
+        "errmsg":"错误信息" 
+    }
 
 
 
 #### 3. 更新任务
 
-    GET /uptask?type=任务类型名&name=工兵名字&tid=任务ID&stat=任务状态(成功=1|失败=-1)&msg=错误信息
-    成功返回"OK";出错返回错误信息串
-
+```
+curl -v -X POST \
+--cookie "gsessionid=MTU0asdf" \
+-d '{
+    "id": 1,
+    "stat": 3,
+    "remark": "asdfasdfadf"
+}' \
+"http://127.0.0.1:8080/updatetask"
+        
+成功应答:
+Body:
+{
+    "code": 0
+}
+        
+错误应答:
+Body:
+{
+    "code":-1,
+    "errmsg":"错误信息" 
+}
+```
 
 
 #### 4. 向服务器打招乎

@@ -1,23 +1,28 @@
 package api
 
 import (
-	"github.com/golang/glog"
-	"github.com/julienschmidt/httprouter"
-	"github.com/liuhengloveyou/easyTask/services"
+	"net"
 	"net/http"
 	"strconv"
 
+	"github.com/liuhengloveyou/easyTask/services"
+
+	"github.com/golang/glog"
+	"github.com/julienschmidt/httprouter"
 	gocommon "github.com/liuhengloveyou/go-common"
 )
-
 
 func QueryTaskAPI(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	r.ParseForm()
 
 	taskType, name, num := r.FormValue("type"), r.FormValue("name"), r.FormValue("num")
-	if "" == taskType || "" == name || "" == num {
+	if "" == taskType || "" == num {
 		gocommon.HttpErr(w, http.StatusOK, -1, "参数错误")
 		return
+	}
+
+	if "" == name {
+		name, _, _ = net.SplitHostPort(r.RemoteAddr)
 	}
 
 	inum, err := strconv.Atoi(num)
@@ -39,7 +44,7 @@ func QueryTaskAPI(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 
 	gocommon.HttpErr(w, http.StatusOK, 0, tasks)
-	logger.Infof("QueryTaskAPI OK: %v %v %v %v", name, taskType, inum, tasks)
+	logger.Infof("QueryTaskAPI OK: %v %v %v\n", name, taskType, inum)
 
 	return
 }
