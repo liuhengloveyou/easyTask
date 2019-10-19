@@ -47,7 +47,7 @@ func (this *TaskQueue) DistTask() Task {
 	// 更新任务状态
 	task.Stat = TaskStatusSend
 	if rows, err := task.Update(); rows != 1 || err != nil {
-		logger.Errorf("update task state to send ERR: ", rows, err)
+		logger.Errorf("update task state to send ERR: %d %v \n", rows, err)
 	}
 	logger.Infof("update task to send OK: %d %v\n", task.ID, task.Rid)
 
@@ -60,7 +60,7 @@ func (this *TaskQueue) realDistTask() {
 			TaskType: this.TaskType,
 		}
 
-		tasks, err := m.Query(10)
+		tasks, err := m.Query(100)
 		if err != nil {
 			logger.Error("query tasks ERR: ", this.TaskType, err.Error())
 			time.Sleep(3 * time.Second) // 等会儿再查
@@ -72,23 +72,22 @@ func (this *TaskQueue) realDistTask() {
 		}
 
 		for _, task := range tasks {
-			fmt.Printf("task to queue: %v %v\n", task.ID, task.Rid)
 			this.taskChan <- task
 			logger.Debugf("task to queue: %v %v\n", task.ID, task.Rid)
 		}
 	}
 }
 
-func (this *TaskQueue) GetTaskFromServe(taskServeAddr, taskType string, num int) Task {
+func (this *TaskQueue) GetTaskFromServe(taskServeAddr, taskType, name string, num int) Task {
 	this.once.Do(func() {
-		go this.realGetTaskFromServe(taskServeAddr, taskType, num)
+		go this.realGetTaskFromServe(taskServeAddr, taskType, name, num)
 	})
 
 	return <-this.taskChan
 }
 
-func (this *TaskQueue) realGetTaskFromServe(taskServeAddr, taskType string, num int) {
-	urlStr := fmt.Sprintf("%s/querytask?type=%s&num=%d", taskServeAddr, taskType, num)
+func (this *TaskQueue) realGetTaskFromServe(taskServeAddr, taskType, name string, num int) {
+	urlStr := fmt.Sprintf("%s/querytask?type=%s&name=%s&num=%d", taskServeAddr, taskType, name, num)
 
 	for {
 		resp, body, err := gocommon.GetRequest(urlStr, nil)
@@ -106,7 +105,7 @@ func (this *TaskQueue) realGetTaskFromServe(taskServeAddr, taskType string, num 
 
 		var tasks []Task
 		if err = gocommon.UnmarshalHttpResponse(body, &tasks); err != nil {
-			logger.Errorf("realGetTaskFromServe data ERR: ", urlStr, string(body), err.Error())
+			logger.Errorf("realGetTaskFromServe data ERR: ", urlStr, err.Error())
 			time.Sleep(1 * time.Second)
 			continue
 		}
@@ -118,13 +117,13 @@ func (this *TaskQueue) realGetTaskFromServe(taskServeAddr, taskType string, num 
 		}
 
 		for i := 0; i < len(tasks); i++ {
-			logger.Debugf("realGetTaskFromServe one: %v %v\n", tasks[i].ID, tasks[i].Rid)
 			if tasks[i].ID <= 0 || tasks[i].Rid == "" || tasks[i].TaskType != taskType {
 				logger.Errorf("realGetTaskFromServe result ERR: %#v\n", tasks[i].ID, tasks[i].Rid)
 				continue
 			}
 
 			this.taskChan <- tasks[i]
+			logger.Infof("realGetTaskFromServe one: %v %v\n", tasks[i].ID, tasks[i].Rid)
 		}
 
 	}

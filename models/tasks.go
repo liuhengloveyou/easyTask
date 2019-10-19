@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"time"
 
-	gocommon "github.com/liuhengloveyou/go-common"
 	"github.com/didi/gendry/builder"
+	gocommon "github.com/liuhengloveyou/go-common"
 )
 
 type Task struct {
@@ -14,10 +14,9 @@ type Task struct {
 	TaskType   string        `json:"task_type" db:"task_type"`     // 任务类型
 	TaskInfo   gocommon.JSON `json:"task_info" db:"task_info"`     // 任务内容
 	Stat       int           `json:"stat" db:"stat"`               // 任务状态
+	Rapper     string        `json:"name" db:"rapper"`
 	AddTime    time.Time     `json:"add_time" db:"add_time"`       // 添加时间
-	UpdateTime time.Time     `json:"update_time" db:"update_time"` // 更新时间
-	Rapper     string        `json:"rapper" db:"rapper"`
-	Client     string        `json:"client" db:"client"`
+	UpdateTime sql.NullTime  `json:"update_time" db:"update_time"` // 更新时间
 	Remark     string        `json:"remark" db:"remark"`
 }
 
@@ -31,6 +30,7 @@ func (p *Task) Insert() (id int64, e error) {
 		"task_info": p.TaskInfo,
 		"stat":      TaskStatusNew,
 		"add_time":  time.Now(),
+		"update_time": sql.NullTime{Valid:true, Time: time.Now()},
 	}
 
 	sqlStr, valArr, err := builder.BuildInsert(table, []map[string]interface{}{data})
@@ -53,9 +53,9 @@ func (p *Task) Query(num int) (tasks []Task, e error) {
 	selectFields := []string{"id", "rid", "task_type", "task_info", "stat", "update_time"}
 	where := map[string]interface{}{
 		"task_type": p.TaskType,
-		"stat": 0,
-		"_orderby": "id asc",
-		"_limit":   []uint{0, uint(num)},
+		"stat":      0,
+		"_orderby":  "id asc",
+		"_limit":    []uint{0, uint(num)},
 	}
 
 	cond, vals, err := builder.BuildSelect(table, where, selectFields)
@@ -71,8 +71,8 @@ func (p *Task) Query(num int) (tasks []Task, e error) {
 func (p *Task) Update() (row int64, e error) {
 	var rst sql.Result
 
-	sqlStr := "UPDATE tasks SET stat=?, remark=? WHERE (id=? AND update_time=?)"
-	where := []interface{}{p.Stat, p.Remark, p.ID, p.UpdateTime}
+	sqlStr := "UPDATE tasks SET stat=?, rapper=?, remark=? WHERE id=?"
+	where := []interface{}{p.Stat, p.Rapper, p.Remark, p.ID}
 
 	logger.Info("Task.update sql: ", sqlStr, where)
 	rst, e = db.Exec(sqlStr, where...)

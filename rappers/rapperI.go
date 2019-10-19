@@ -17,7 +17,6 @@ var rappers = make(map[string]rapperType)
 // rapper 需要实现的接口
 type Rapper interface {
 	Run() // 开始任务
-
 	NewTaskInfo() interface{} // 返回一个任务详情对象
 }
 
@@ -42,14 +41,17 @@ func NewRapper(typeName string) (Rapper, error) {
 	return newFun(), nil
 }
 
+func init() {
+	RegisterRapper("download", NewDownloadRapper)
+	RegisterRapper("downimg", NewDownImgRapper)
+}
+
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
 // 客户端更新任务状态
 func UpdateTaskToServe(task models.Task) error {
-	if task.ID <= 0 ||
-		(task.Stat < models.TaskStatusNew || task.Stat > models.TaskStatusERR) ||
-		task.UpdateTime.Year() == 0 {
+	if task.ID <= 0 || (task.Stat < models.TaskStatusNew || task.Stat > models.TaskStatusERR) {
 		return fmt.Errorf("UpdateTaskToServe param ERR")
 	}
 

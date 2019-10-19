@@ -21,7 +21,7 @@ func UpdateTaskAPI(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 	logger.Debug("UpdateTaskAPI body: ", string(body))
 
 	if string(body) == "" {
-		logger.Errorf("UpdateTaskAPI requst ERR")
+		logger.Errorf("UpdateTaskAPI no body")
 		gocommon.HttpErr(w, http.StatusOK, -1, "读取数据出错")
 		return
 	}

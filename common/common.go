@@ -12,6 +12,7 @@ import (
 
 type ClientConfigStruct struct {
 	PID           string `yaml:"pid"`
+	Name          string `yaml:"name"`
 	TaskServeAddr string `yaml:"task_serve_addr"`
 	TaskType      string `yaml:"task_type"`
 	Flow          int    `yaml:"flow"`
@@ -41,20 +42,23 @@ func init() {
 	}
 
 	writer, _ := rotatelogs.New(
-		ServeConfig.LogDir+"app.log.%Y%m%d%H%M",
-		rotatelogs.WithLinkName("app.log"),
+		ServeConfig.LogDir+"log.%Y%m%d%H%M",
+		rotatelogs.WithLinkName("log"),
 		rotatelogs.WithMaxAge(30*24*time.Hour),
 		rotatelogs.WithRotationTime(time.Hour),
 	)
 
+	level := zapcore.DebugLevel
+	if e := level.UnmarshalText([]byte(ServeConfig.LogLevel)); e != nil {
+		panic(e)
+	}
+
 	core := zapcore.NewCore(
 		zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()),
 		zapcore.AddSync(writer),
-		zap.DebugLevel)
+		level)
 
 	Logger = zap.New(core, zap.Development())
-
-	//passportcommon.Logger = Logger
 
 	return
 }
@@ -65,8 +69,8 @@ func InitClient() error {
 	}
 
 	writer, _ := rotatelogs.New(
-		ServeConfig.LogDir+"app.log.%Y%m%d%H%M",
-		rotatelogs.WithLinkName("app.log"),
+		ServeConfig.LogDir+"log.%Y%m%d%H%M",
+		rotatelogs.WithLinkName("log"),
 		rotatelogs.WithMaxAge(30*24*time.Hour),
 		rotatelogs.WithRotationTime(time.Hour),
 	)

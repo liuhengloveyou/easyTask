@@ -15,6 +15,8 @@ const (
 	TaskStatusSend
 	TaskStatusOK
 	TaskStatusERR
+
+	TaskStatusEND
 )
 
 var (

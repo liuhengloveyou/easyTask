@@ -3,8 +3,6 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"time"
-
 	"github.com/liuhengloveyou/easyTask/models"
 	"github.com/liuhengloveyou/easyTask/rappers"
 )
@@ -31,14 +29,11 @@ func AddTaskService(body []byte) (id int64, err error) {
 	if err = json.Unmarshal([]byte(task.TaskInfo), taskInfo); err != nil {
 		logger.Errorf("AddTaskService info ERR: ", task)
 		return
-		}
+	}
 
 	logger.Debugf("AddTaskService model: %#v\n%#v\n", task, taskInfo)
 
-	now := time.Now()
 	task.Stat = 1
-	task.AddTime = now
-	task.UpdateTime = now
 
 	id, err = task.Insert()
 	if err != nil {
@@ -53,9 +48,7 @@ func AddTaskService(body []byte) (id int64, err error) {
 
 // 取任务
 func QueryTaskService(taskType string, num int) (tasks []models.Task, err error) {
-
 	// 任务类型有吗？
-	// var rapper rappers.Rapper
 	if _, err = rappers.NewRapper(taskType); err != nil {
 		logger.Errorf("QueryTaskService no rapper types: %s\n", taskType)
 		return
@@ -63,6 +56,7 @@ func QueryTaskService(taskType string, num int) (tasks []models.Task, err error)
 
 	taskQueue := models.GetTaskQueue(taskType)
 
+	// 从队列里取
 	tasks = make([]models.Task, 0)
 	for i := 0; i < num; i++ {
 		one := taskQueue.DistTask()
@@ -84,10 +78,19 @@ func UpdateTaskService(body []byte) error {
 	}
 
 	logger.Debug("UpdateTaskService model: ", task)
+	if task.ID <= 0 {
+		return fmt.Errorf("UpdateTaskService no id")
+	}
+	if task.Stat <= models.TaskStatusNew || task.Stat >= models.TaskStatusEND {
+		return fmt.Errorf("UpdateTaskService Stat err")
+	}
+	if task.Rapper == "" {
+		return fmt.Errorf("UpdateTaskService RapperName nil")
+	}
 
 	rows, err := task.Update()
 	if err != nil {
-		logger.Error("UpdateTaskService ERR: ", err.Error())
+		logger.Error("UpdateTaskService ERR: %v\n", err.Error())
 		return err
 	}
 	if rows != 1 {
@@ -95,7 +98,7 @@ func UpdateTaskService(body []byte) error {
 		return fmt.Errorf("更新错误 %d", rows)
 	}
 
-	logger.Infof("UpdateTaskService OK", task.ID, task.Rid, task.Stat, task.Rid, task.UpdateTime)
+	logger.Infof("UpdateTaskService OK: %v %v %v %v", task.ID, task.Rid, task.Stat, task.UpdateTime)
 
 	return nil
 }
