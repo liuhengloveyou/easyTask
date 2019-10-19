@@ -2,18 +2,13 @@
 
 简单任务分发系统。方便的用堆机器的方式解决资源消耗型业务
 
-## 使用方式
-
-1. 部署服务端
-
-
-
 ## 配置
 
 1. **服务端**
 
 ```yaml
 pid: "/tmp/easytask.pid"
+auth: false # 是否要求用户登录
 addr: ":8080" # 服务监听地址和端口
 mysql: "root:lhisroot@tcp(127.0.0.1:3306)/taskmanager?charset=utf8" 
 log_dir: "./logs/" # 日志目录
@@ -33,7 +28,7 @@ log_dir: "./logs/"
 
 ## 接口:
 
-#### 1. 添加任务
+### 1. 添加任务
 
 ```
 curl -v -X PUT \

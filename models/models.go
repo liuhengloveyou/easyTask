@@ -6,7 +6,6 @@ import (
 	"github.com/liuhengloveyou/easyTask/common"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -21,7 +20,6 @@ const (
 
 var (
 	logger *zap.SugaredLogger
-	db     *sqlx.DB
 )
 
 type DAOInterface interface {
@@ -34,27 +32,13 @@ func init() {
 	logger = common.Logger.Sugar()
 }
 
-func InitDB() error {
-	var e error
-	if db, e = sqlx.Connect("mysql", common.ServeConfig.Mysql); e != nil {
-		return e
-	}
-	db.SetMaxOpenConns(2000)
-	db.SetMaxIdleConns(1000)
-	if e = db.Ping(); e != nil {
-		return e
-	}
-
-	return nil
-}
-
 func Insert(tx *sql.Tx, model DAOInterface) (rst sql.Result, e error) {
 	var _tx *sql.Tx
 
 	if tx != nil {
 		_tx = tx
 	} else {
-		if _tx, e = db.Begin(); e != nil {
+		if _tx, e = common.DB.Begin(); e != nil {
 			return nil, e
 		}
 
@@ -78,7 +62,7 @@ func Delete(tx *sql.Tx, model DAOInterface) (rst sql.Result, e error) {
 	if tx != nil {
 		_tx = tx
 	} else {
-		if _tx, e = db.Begin(); e != nil {
+		if _tx, e = common.DB.Begin(); e != nil {
 			return nil, e
 		}
 
@@ -102,7 +86,7 @@ func Update(tx *sql.Tx, model DAOInterface) (rst sql.Result, e error) {
 	if tx != nil {
 		_tx = tx
 	} else {
-		if _tx, e = db.Begin(); e != nil {
+		if _tx, e = common.DB.Begin(); e != nil {
 			return nil, e
 		}
 
@@ -121,7 +105,7 @@ func Update(tx *sql.Tx, model DAOInterface) (rst sql.Result, e error) {
 }
 
 func BeginTx() (*sql.Tx, error) {
-	return db.Begin()
+	return common.DB.Begin()
 }
 
 // defer Rollback(_tx)

@@ -43,7 +43,6 @@ func NewRapper(typeName string) (Rapper, error) {
 
 func init() {
 	RegisterRapper("download", NewDownloadRapper)
-	RegisterRapper("downimg", NewDownImgRapper)
 }
 
 //////////////////////////////////////////////////////////////////////////////////

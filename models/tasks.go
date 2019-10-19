@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/liuhengloveyou/easyTask/common"
+
 	"github.com/didi/gendry/builder"
 	gocommon "github.com/liuhengloveyou/go-common"
 )
@@ -40,7 +42,7 @@ func (p *Task) Insert() (id int64, e error) {
 
 	logger.Debug("Task.Insert sql: ", sqlStr, valArr, err)
 
-	rst, e = db.Exec(sqlStr, valArr...)
+	rst, e = common.DB.Exec(sqlStr, valArr...)
 	if e == nil {
 		id, e = rst.LastInsertId()
 	}
@@ -61,7 +63,7 @@ func (p *Task) Query(num int) (tasks []Task, e error) {
 	cond, vals, err := builder.BuildSelect(table, where, selectFields)
 	logger.Info("Task.Select sql: ", cond, vals, err)
 
-	if e = db.Select(&tasks, cond, vals...); e != nil {
+	if e = common.DB.Select(&tasks, cond, vals...); e != nil {
 		return
 	}
 
@@ -75,7 +77,7 @@ func (p *Task) Update() (row int64, e error) {
 	where := []interface{}{p.Stat, p.Rapper, p.Remark, p.ID}
 
 	logger.Info("Task.update sql: ", sqlStr, where)
-	rst, e = db.Exec(sqlStr, where...)
+	rst, e = common.DB.Exec(sqlStr, where...)
 	if e == nil {
 		return rst.RowsAffected()
 	}

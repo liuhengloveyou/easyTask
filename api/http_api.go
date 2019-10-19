@@ -1,12 +1,16 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/liuhengloveyou/easyTask/common"
 
 	"github.com/julienschmidt/httprouter"
+	gocommon "github.com/liuhengloveyou/go-common"
+	passport "github.com/liuhengloveyou/passport/face"
+	"github.com/liuhengloveyou/passport/sessions"
 	"go.uber.org/zap"
 )
 
@@ -19,23 +23,25 @@ func InitHttpApi(addr string) error {
 	router = httprouter.New()
 	logger = common.Logger.Sugar()
 
-	router.PUT("/addtask", AddTaskAPI)
-	router.GET("/querytask", QueryTaskAPI)
-	router.POST("/updatetask", UpdateTaskAPI)
+	// 用户接口
+	if common.ServeConfig.Auth {
+		// passport
+		passport.InitUserHttpService(router, "")
+		http.Handle("/user", &passport.HttpServer{})
+
+		//router.POST("/api/user", UpdateUserInfo)      // 更新用户信息
+		//router.GET("/api/user", GetMyInfo)            // 查询用户个人信息
+		//router.GET("/api/user/open", GetUserInfoOpen) // 查询用户公开信息
+	}
+
+	router.PUT("/api/addtask", AddTaskAPI)
+	router.GET("/api/querytask", QueryTaskAPI)
+	router.POST("/api/updatetask", UpdateTaskAPI)
 
 	//http.Handle("/sayhi", &SayhiHandler{})
 	//http.HandleFunc("/beat", HandleBeat)
-	//
 	//http.Handle("/monitor", &MonitorHandler{})
 	http.Handle("/web/", http.StripPrefix("/web/", http.FileServer(http.Dir("./static/"))))
-
-	// 用户
-	//router.POST("/api/user", UpdateUserInfo)      // 更新用户信息
-	//router.GET("/api/user", GetMyInfo)            // 查询用户个人信息
-	//router.GET("/api/user/open", GetUserInfoOpen) // 查询用户公开信息
-
-	// passport
-	// http.Handle("/user", &passport.HttpServer{})
 
 	// root
 	http.Handle("/", &Server{})
@@ -60,7 +66,7 @@ func (p *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer logger.Sync()
 
 	// 跨域资源共享
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8100")
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
 	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE")
 	w.Header().Set("Access-Control-Max-Age", "3600")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -78,33 +84,33 @@ func (p *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//	return
 	//}
 
-	//sess, auth := AuthFilter(w, r)
-	//
-	//if false == auth {
-	//	return // 没有登录
-	//}
-	//
-	//if sess != nil {
-	//	r = r.WithContext(context.WithValue(context.Background(), "session", sess))
-	//}
+	if common.ServeConfig.Auth {
+		sess, auth := AuthFilter(w, r)
+		if false == auth {
+			return // 没有登录
+		}
+
+		if sess != nil {
+			r = r.WithContext(context.WithValue(context.Background(), "session", sess))
+		}
+	}
 
 	router.ServeHTTP(w, r)
 
 	return
 }
 
-//
-//func AuthFilter(w http.ResponseWriter, r *http.Request) (sess *sessions.Session, auth bool) {
-//	sess, auth = passport.AuthFilter(w, r)
-//	logger.Debug("session:", sess, auth)
-//
-//	if auth == false && sess == nil {
-//		gocommon.HttpErr(w, http.StatusOK, -1, "请登录")
-//		return
-//	} else if auth == false && sess != nil {
-//		gocommon.HttpErr(w, http.StatusOK, -1, "您没有权限")
-//		return
-//	}
-//
-//	return
-//}
+func AuthFilter(w http.ResponseWriter, r *http.Request) (sess *sessions.Session, auth bool) {
+	sess, auth = passport.AuthFilter(w, r)
+	logger.Debug("session:", sess, auth)
+
+	if auth == false && sess == nil {
+		gocommon.HttpErr(w, http.StatusOK, -1, "请登录")
+		return
+	} else if auth == false && sess != nil {
+		gocommon.HttpErr(w, http.StatusOK, -1, "您没有权限")
+		return
+	}
+
+	return
+}

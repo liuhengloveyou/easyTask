@@ -2,10 +2,12 @@ package common
 
 import (
 	"flag"
+	"github.com/jmoiron/sqlx"
 	"time"
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	gocommon "github.com/liuhengloveyou/go-common"
+	passportcommon "github.com/liuhengloveyou/passport/common"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -22,6 +24,7 @@ type ClientConfigStruct struct {
 
 type ServeConfigStruct struct {
 	PID      string `yaml:"pid"`
+	Auth     bool   `yaml:"auth"`
 	Addr     string `yaml:"addr"`
 	Mysql    string `yaml:"mysql"`
 	LogDir   string `yaml:"log_dir"`
@@ -34,6 +37,7 @@ var (
 	ClientConfig ClientConfigStruct
 	ServeConfig  ServeConfigStruct
 	Logger       *zap.Logger
+	DB     *sqlx.DB
 )
 
 func init() {
@@ -41,6 +45,11 @@ func init() {
 		panic(e)
 	}
 
+	if ServeConfig.Mysql != "" {
+		if e := InitDB(); e != nil {
+			panic(e)
+		}
+	}
 	writer, _ := rotatelogs.New(
 		ServeConfig.LogDir+"log.%Y%m%d%H%M",
 		rotatelogs.WithLinkName("log"),
@@ -60,7 +69,26 @@ func init() {
 
 	Logger = zap.New(core, zap.Development())
 
+	if ServeConfig.Auth {
+		passportcommon.Logger = Logger
+		passportcommon.DB = DB
+	}
+
 	return
+}
+
+func InitDB() error {
+	var e error
+	if DB, e = sqlx.Connect("mysql", ServeConfig.Mysql); e != nil {
+		return e
+	}
+	DB.SetMaxOpenConns(2000)
+	DB.SetMaxIdleConns(1000)
+	if e = DB.Ping(); e != nil {
+		return e
+	}
+
+	return nil
 }
 
 func InitClient() error {

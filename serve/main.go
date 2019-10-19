@@ -12,8 +12,6 @@ import (
 
 	"github.com/liuhengloveyou/easyTask/api"
 	"github.com/liuhengloveyou/easyTask/common"
-	"github.com/liuhengloveyou/easyTask/models"
-
 	gocommon "github.com/liuhengloveyou/go-common"
 )
 
@@ -41,11 +39,6 @@ func init() {
 }
 
 func main() {
-	// 初始化数据库
-	if err := models.InitDB(); err != nil {
-		panic(err)
-	}
-
 	// go RapperCleaner()
 
 	fmt.Println("easytask GO...", common.ServeConfig.Addr)
