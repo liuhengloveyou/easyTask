@@ -16,7 +16,7 @@ var rappers = make(map[string]rapperType)
 
 // rapper 需要实现的接口
 type Rapper interface {
-	Run() // 开始任务
+	Run()                     // 开始任务
 	NewTaskInfo() interface{} // 返回一个任务详情对象
 }
 

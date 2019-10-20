@@ -22,7 +22,7 @@ var (
 func InitHttpApi(addr string) error {
 	router = httprouter.New()
 	logger = common.Logger.Sugar()
-
+	
 	// 用户接口
 	if common.ServeConfig.Auth {
 		// passport
@@ -34,9 +34,9 @@ func InitHttpApi(addr string) error {
 		//router.GET("/api/user/open", GetUserInfoOpen) // 查询用户公开信息
 	}
 
-	router.PUT("/api/addtask", AddTaskAPI)
-	router.GET("/api/querytask", QueryTaskAPI)
-	router.POST("/api/updatetask", UpdateTaskAPI)
+	router.PUT("/addtask/:type/:count", AddTaskAPI)
+	router.GET("/querytask", QueryTaskAPI)
+	router.POST("/updatetask", UpdateTaskAPI)
 
 	//http.Handle("/sayhi", &SayhiHandler{})
 	//http.HandleFunc("/beat", HandleBeat)

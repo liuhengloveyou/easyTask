@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -11,6 +12,8 @@ import (
 )
 
 func AddTaskAPI(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	fmt.Println(">>>>>>>>>>>>", p)
+	
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		logger.Errorf("AddTask body ERR: ", err)
