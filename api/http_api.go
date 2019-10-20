@@ -19,7 +19,7 @@ func InitHttpApi(addr string) error {
 	router = httprouter.New()
 	logger = common.Logger.Sugar()
 
-	router.PUT("/addtask", AddTaskAPI)
+	router.PUT("/addtask/:type/:count", AddTaskAPI)
 	router.GET("/querytask", QueryTaskAPI)
 	router.POST("/updatetask", UpdateTaskAPI)
 
