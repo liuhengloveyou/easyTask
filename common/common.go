@@ -2,8 +2,9 @@ package common
 
 import (
 	"flag"
-	"github.com/jmoiron/sqlx"
 	"time"
+
+	"github.com/jmoiron/sqlx"
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	gocommon "github.com/liuhengloveyou/go-common"
@@ -37,7 +38,7 @@ var (
 	ClientConfig ClientConfigStruct
 	ServeConfig  ServeConfigStruct
 	Logger       *zap.Logger
-	DB     *sqlx.DB
+	DB           *sqlx.DB
 )
 
 func init() {
@@ -45,29 +46,17 @@ func init() {
 		panic(e)
 	}
 
+	if ServeConfig.LogDir != "" {
+		if e := InitLog(); e != nil {
+			panic(e)
+		}
+	}
+
 	if ServeConfig.Mysql != "" {
 		if e := InitDB(); e != nil {
 			panic(e)
 		}
 	}
-	writer, _ := rotatelogs.New(
-		ServeConfig.LogDir+"log.%Y%m%d%H%M",
-		rotatelogs.WithLinkName("log"),
-		rotatelogs.WithMaxAge(30*24*time.Hour),
-		rotatelogs.WithRotationTime(time.Hour),
-	)
-
-	level := zapcore.DebugLevel
-	if e := level.UnmarshalText([]byte(ServeConfig.LogLevel)); e != nil {
-		panic(e)
-	}
-
-	core := zapcore.NewCore(
-		zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()),
-		zapcore.AddSync(writer),
-		level)
-
-	Logger = zap.New(core, zap.Development())
 
 	if ServeConfig.Auth {
 		passportcommon.Logger = Logger
@@ -77,8 +66,32 @@ func init() {
 	return
 }
 
+func InitLog() error {
+	writer, _ := rotatelogs.New(
+		ServeConfig.LogDir+"log.%Y%m%d%H%M",
+		rotatelogs.WithLinkName("log"),
+		rotatelogs.WithMaxAge(15*24*time.Hour),
+		rotatelogs.WithRotationTime(time.Hour),
+	)
+
+	level := zapcore.DebugLevel
+	if e := level.UnmarshalText([]byte(ServeConfig.LogLevel)); e != nil {
+		return e
+	}
+
+	core := zapcore.NewCore(
+		zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()),
+		zapcore.AddSync(writer),
+		level)
+
+	Logger = zap.New(core, zap.Development())
+
+	return nil
+}
+
 func InitDB() error {
 	var e error
+
 	if DB, e = sqlx.Connect("mysql", ServeConfig.Mysql); e != nil {
 		return e
 	}

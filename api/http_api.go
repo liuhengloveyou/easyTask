@@ -7,7 +7,6 @@ import (
 
 	"github.com/liuhengloveyou/easyTask/common"
 
-	"github.com/julienschmidt/httprouter"
 	gocommon "github.com/liuhengloveyou/go-common"
 	passport "github.com/liuhengloveyou/passport/face"
 	"github.com/liuhengloveyou/passport/sessions"
@@ -16,55 +15,42 @@ import (
 
 var (
 	logger *zap.SugaredLogger
-	router *httprouter.Router
 )
 
-func InitHttpApi(addr string) error {
-	router = httprouter.New()
+func InitHttpApi(addr string, auth bool) (handler http.Handler) {
 	logger = common.Logger.Sugar()
-	
-	// 用户接口
-	if common.ServeConfig.Auth {
-		// passport
-		passport.InitUserHttpService(router, "")
-		http.Handle("/user", &passport.HttpServer{})
-
-		//router.POST("/api/user", UpdateUserInfo)      // 更新用户信息
-		//router.GET("/api/user", GetMyInfo)            // 查询用户个人信息
-		//router.GET("/api/user/open", GetUserInfoOpen) // 查询用户公开信息
+	handler = &HttpServer{
+		auth: auth,
 	}
 
-	router.PUT("/addtask/:type/:count", AddTaskAPI)
-	router.GET("/querytask", QueryTaskAPI)
-	router.POST("/updatetask", UpdateTaskAPI)
+	//// 用户接口; 不能放在这里
+	//if auth {
+	//	http.Handle("/user", passport.InitUserHttpService(""))
+	//}
 
-	//http.Handle("/sayhi", &SayhiHandler{})
-	//http.HandleFunc("/beat", HandleBeat)
-	//http.Handle("/monitor", &MonitorHandler{})
-	http.Handle("/web/", http.StripPrefix("/web/", http.FileServer(http.Dir("./static/"))))
-
-	// root
-	http.Handle("/", &Server{})
-
-	s := &http.Server{
-		Addr:           addr,
-		ReadTimeout:    10 * time.Minute,
-		WriteTimeout:   10 * time.Minute,
-		MaxHeaderBytes: 1 << 20,
+	if addr != "" {
+		//http.Handle("/monitor", &MonitorHandler{})
+		http.Handle("/web/", http.StripPrefix("/web/", http.FileServer(http.Dir("./static/"))))
+		http.Handle("/", &HttpServer{})
+		s := &http.Server{
+			Addr:           addr,
+			ReadTimeout:    10 * time.Minute,
+			WriteTimeout:   10 * time.Minute,
+			MaxHeaderBytes: 1 << 20,
+		}
+		if err := s.ListenAndServe(); err != nil {
+			panic(err)
+		}
 	}
 
-	if err := s.ListenAndServe(); err != nil {
-		return err
-	}
-
-	return nil
+	return
 }
 
-type Server struct{}
+type HttpServer struct{
+	auth bool
+}
 
-func (p *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	defer logger.Sync()
-
+func (p *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 跨域资源共享
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
 	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE")
@@ -73,29 +59,38 @@ func (p *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Access-Control-Allow-Headers", "X-API, X-REQUEST-ID, X-API-TRANSACTION, X-API-TRANSACTION-TIMEOUT, X-RANGE, Origin, X-Requested-With, Content-Type, Accept")
 	w.Header().Add("P3P", `CP="CURa ADMa DEVa PSAo PSDo OUR BUS UNI PUR INT DEM STA PRE COM NAV OTC NOI DSP COR"`)
 	if r.Method == "OPTIONS" {
-		w.WriteHeader(200)
+		w.WriteHeader(204)
 		return
 	}
 
-	//URL, err := url.ParseRequestURI(r.RequestURI)
-	//if err != nil {
-	//	logger.Error("url ERR: ", err)
-	//	w.WriteHeader(http.StatusNotFound)
-	//	return
-	//}
-
-	if common.ServeConfig.Auth {
+	if p.auth {
 		sess, auth := AuthFilter(w, r)
 		if false == auth {
 			return // 没有登录
 		}
-
-		if sess != nil {
-			r = r.WithContext(context.WithValue(context.Background(), "session", sess))
+		if sess == nil {
+			return
 		}
+		r = r.WithContext(context.WithValue(context.Background(), "session", sess))
 	}
 
-	router.ServeHTTP(w, r)
+	api := r.Header.Get("X-API")
+	logger.Debugf("task api: %v\n", api)
+	switch api {
+	case "/task/add":
+		AddTaskAPI(w, r) // 添加一个任务
+	case "/task/add/batch":
+		AddTaskBatchAPI(w, r) // 批量添加任务
+	case "/task/query":
+		QueryTaskAPI(w, r) // 查询任务详情
+	case "/task/get":
+		GetTaskAPI(w, r) // 分发任务
+	case "/task/update":
+		UpdateTaskAPI(w, r) // 更新任务
+	default:
+		gocommon.HttpErr(w, http.StatusNotFound, 0, "")
+		return
+	}
 
 	return
 }
@@ -105,10 +100,10 @@ func AuthFilter(w http.ResponseWriter, r *http.Request) (sess *sessions.Session,
 	logger.Debug("session:", sess, auth)
 
 	if auth == false && sess == nil {
-		gocommon.HttpErr(w, http.StatusOK, -1, "请登录")
+		gocommon.HttpErr(w, http.StatusUnauthorized, -1, "请登录")
 		return
 	} else if auth == false && sess != nil {
-		gocommon.HttpErr(w, http.StatusOK, -1, "您没有权限")
+		gocommon.HttpErr(w, http.StatusUnauthorized, -1, "您没有权限")
 		return
 	}
 

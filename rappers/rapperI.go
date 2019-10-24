@@ -14,10 +14,16 @@ import (
 // 系统里所有的rapper类型
 var rappers = make(map[string]rapperType)
 
+// taskInfo 需要实现的接口
+type TaskInfoI interface {
+	GetRid() string // 返回RID
+	FromString(raw string) error // 从字符串生成
+}
+
 // rapper 需要实现的接口
 type Rapper interface {
-	Run()                     // 开始任务
-	NewTaskInfo() interface{} // 返回一个任务详情对象
+	Run()                   // 开始任务
+	NewTaskInfo() TaskInfoI // 返回一个任务详情对象
 }
 
 type rapperType func() Rapper
@@ -43,6 +49,7 @@ func NewRapper(typeName string) (Rapper, error) {
 
 func init() {
 	RegisterRapper("download", NewDownloadRapper)
+	RegisterRapper("daikan", NewDaikanRapper)
 }
 
 //////////////////////////////////////////////////////////////////////////////////

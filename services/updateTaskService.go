@@ -4,70 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/liuhengloveyou/easyTask/models"
-	"github.com/liuhengloveyou/easyTask/rappers"
 )
-
-// 添加一个任务
-func AddTaskService(body []byte) (id int64, err error) {
-	task := &models.Task{}
-	if e := json.Unmarshal(body, task); e != nil {
-		logger.Errorf("AddTaskService Unmarshal body ERR: %v\n", e.Error())
-		return -1, e
-	}
-
-	logger.Debug("AddTaskService model: ", task)
-
-	// 任务类型有吗？
-	var rapper rappers.Rapper
-	if rapper, err = rappers.NewRapper(task.TaskType); err != nil {
-		logger.Errorf("AddTaskService no rapper types: %s\n", task.TaskType)
-		return
-	}
-
-	// info格式对吗?
-	taskInfo := rapper.NewTaskInfo()
-	if err = json.Unmarshal([]byte(task.TaskInfo), taskInfo); err != nil {
-		logger.Errorf("AddTaskService info ERR: ", task)
-		return
-	}
-
-	logger.Debugf("AddTaskService model: %#v\n%#v\n", task, taskInfo)
-
-	task.Stat = 1
-
-	id, err = task.Insert()
-	if err != nil {
-		logger.Error("AddTaskService ERR: ", err.Error())
-		return
-	}
-
-	logger.Infof("AddTaskService: %d %s\n", id, err)
-
-	return
-}
-
-// 取任务
-func QueryTaskService(taskType string, num int) (tasks []models.Task, err error) {
-	// 任务类型有吗？
-	if _, err = rappers.NewRapper(taskType); err != nil {
-		logger.Errorf("QueryTaskService no rapper types: %s\n", taskType)
-		return
-	}
-
-	taskQueue := models.GetTaskQueue(taskType)
-
-	// 从队列里取
-	tasks = make([]models.Task, 0)
-	for i := 0; i < num; i++ {
-		one := taskQueue.DistTask()
-		if one.ID < 0 {
-			break
-		}
-		tasks = append(tasks, one)
-	}
-
-	return tasks, nil
-}
 
 // 更新任务状态
 func UpdateTaskService(body []byte) error {

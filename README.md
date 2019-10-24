@@ -28,7 +28,7 @@ log_dir: "./logs/"
 
 ## 接口:
 
-### 1. 添加任务
+### 添加任务
 
 ```
 curl -v -X PUT \
@@ -41,7 +41,7 @@ curl -v -X PUT \
         "url": "asdlfkjalsdkfjal"
     }
 }' \
-"http://127.0.0.1:8080/putask"
+"http://127.0.0.1:18888/api/putask/tasktype"
     
 成功应答:
 Body:
@@ -58,11 +58,46 @@ Body:
 }
 ````
 
+### 查询任务信息
 
+```
+curl "http://127.0.0.1:8080/querytask?type=download&pageno=9&pagesize=10"
+    
+成功应答:
+    {
+        "code":0,
+        "data":[
+            {
+                "id":6,
+                "tid":"",
+                "rid":"10",
+                "task_type":"download",
+                "task_info":{
+                    "rid":"1111",
+                    "url":"asdlfkjalsdkfjal"
+                },
+                "stat":1,
+                "add_time": "2019-10-14T02:36:30Z",
+                "update_time": "2019-10-14T02:36:30Z",
+                "rapper":"",
+                "client":"",
+                "remark":""
+            }
+        ]
+    }
+    
+    错误应答:
+    Body:
+    {
+        "code":-1,
+        "errmsg":"错误信息" 
+    }
+```
 
 ### 2. 获取任务
 
-    curl "http://127.0.0.1:8080/querytask?type=download&name=工兵名字&num=10"
+```
+curl "http://127.0.0.1:8080/querytask?type=download&name=工兵名字&num=10"
     
     成功应答:
     {
@@ -93,6 +128,8 @@ Body:
         "code":-1,
         "errmsg":"错误信息" 
     }
+```
+
 
 
 

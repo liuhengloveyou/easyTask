@@ -6,11 +6,10 @@ import (
 
 	"github.com/liuhengloveyou/easyTask/services"
 
-	"github.com/julienschmidt/httprouter"
 	gocommon "github.com/liuhengloveyou/go-common"
 )
 
-func UpdateTaskAPI(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func UpdateTaskAPI(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		logger.Errorf("UpdateTaskAPI body ERR: ", err)

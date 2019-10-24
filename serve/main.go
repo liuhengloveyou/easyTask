@@ -42,5 +42,5 @@ func main() {
 	// go RapperCleaner()
 
 	fmt.Println("easytask GO...", common.ServeConfig.Addr)
-	panic(api.InitHttpApi(common.ServeConfig.Addr))
+	panic(api.InitHttpApi(common.ServeConfig.Addr, common.ServeConfig.Auth))
 }

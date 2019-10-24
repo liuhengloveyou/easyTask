@@ -19,6 +19,15 @@ type DownloadTaskInfo struct {
 	URL  string `json:"url"`   // 文件下载URL
 }
 
+
+func (p *DownloadTaskInfo) GetRid() string {
+	return p.Rid
+}
+
+func (p *DownloadTaskInfo) FromString(raw string) error {
+	return nil
+}
+
 type DownloadRapper struct {
 }
 
@@ -26,7 +35,7 @@ func NewDownloadRapper() Rapper {
 	return &DownloadRapper{}
 }
 
-func (p *DownloadRapper) NewTaskInfo() interface{} {
+func (p *DownloadRapper) NewTaskInfo() TaskInfoI {
 	return &DownloadTaskInfo{}
 }
 

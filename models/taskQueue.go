@@ -60,7 +60,7 @@ func (this *TaskQueue) realDistTask() {
 			TaskType: this.TaskType,
 		}
 
-		tasks, err := m.Query(100)
+		tasks, err := m.Query(1, 100)
 		if err != nil {
 			logger.Error("query tasks ERR: ", this.TaskType, err.Error())
 			time.Sleep(3 * time.Second) // 等会儿再查

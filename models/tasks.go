@@ -11,11 +11,12 @@ import (
 )
 
 type Task struct {
-	ID         int64         `json:"id" db:"id"`                   // 任务ID
-	Rid        string        `json:"rid" db:"rid"`                 // 记录ID
-	TaskType   string        `json:"task_type" db:"task_type"`     // 任务类型
-	TaskInfo   gocommon.JSON `json:"task_info" db:"task_info"`     // 任务内容
-	Stat       int           `json:"stat" db:"stat"`               // 任务状态
+	ID         int64         `json:"id" db:"id"`               // 任务ID
+	UID        int64         `json:"uid" db:"uid"`             // 用户ID
+	Rid        string        `json:"rid" db:"rid"`             // 记录ID
+	TaskType   string        `json:"task_type" db:"task_type"` // 任务类型
+	TaskInfo   gocommon.JSON `json:"task_info" db:"task_info"` // 任务内容
+	Stat       int           `json:"stat" db:"stat"`           // 任务状态
 	Rapper     string        `json:"name" db:"rapper"`
 	AddTime    time.Time     `json:"add_time" db:"add_time"`       // 添加时间
 	UpdateTime sql.NullTime  `json:"update_time" db:"update_time"` // 更新时间
@@ -27,12 +28,16 @@ func (p *Task) Insert() (id int64, e error) {
 
 	table := "tasks"
 	data := map[string]interface{}{
-		"rid":       p.Rid,
-		"task_type": p.TaskType,
-		"task_info": p.TaskInfo,
-		"stat":      TaskStatusNew,
-		"add_time":  time.Now(),
-		"update_time": sql.NullTime{Valid:true, Time: time.Now()},
+		"rid":         p.Rid,
+		"task_type":   p.TaskType,
+		"task_info":   p.TaskInfo,
+		"stat":        p.Stat,
+		"add_time":    time.Now(),
+		"update_time": sql.NullTime{Valid: true, Time: time.Now()},
+	}
+
+	if p.UID > 0 {
+		data["uid"] = p.UID
 	}
 
 	sqlStr, valArr, err := builder.BuildInsert(table, []map[string]interface{}{data})
@@ -50,14 +55,22 @@ func (p *Task) Insert() (id int64, e error) {
 	return
 }
 
-func (p *Task) Query(num int) (tasks []Task, e error) {
+func (p *Task) Query(pageNO, pageSize uint) (tasks []Task, e error) {
 	table := "tasks"
-	selectFields := []string{"id", "rid", "task_type", "task_info", "stat", "update_time"}
+	selectFields := []string{"id", "uid", "rid", "task_type", "task_info", "stat", "update_time"}
 	where := map[string]interface{}{
-		"task_type": p.TaskType,
-		"stat":      0,
 		"_orderby":  "id asc",
-		"_limit":    []uint{0, uint(num)},
+		"_limit":   []uint{(pageNO - 1) * pageSize, pageSize},
+	}
+
+	if p.TaskType != "" {
+		where["task_type"] = p.TaskType
+	}
+	if p.Stat >= 0 {
+		where["stat"] = p.Stat
+	}
+	if p.UID > 0 {
+		where["uid"] = p.UID
 	}
 
 	cond, vals, err := builder.BuildSelect(table, where, selectFields)
