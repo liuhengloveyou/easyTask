@@ -87,10 +87,10 @@ func (this *TaskQueue) GetTaskFromServe(taskServeAddr, taskType, name string, nu
 }
 
 func (this *TaskQueue) realGetTaskFromServe(taskServeAddr, taskType, name string, num int) {
-	urlStr := fmt.Sprintf("%s/querytask?type=%s&name=%s&num=%d", taskServeAddr, taskType, name, num)
+	urlStr := fmt.Sprintf("%s/api?type=%s&name=%s&num=%d", taskServeAddr, taskType, name, num)
 
 	for {
-		resp, body, err := gocommon.GetRequest(urlStr, nil)
+		resp, body, err := gocommon.GetRequest(urlStr, map[string]string{"X-API": "/task/get"})
 		if err != nil {
 			logger.Error("realGetTaskFromServe ERR: ", urlStr, err.Error())
 			time.Sleep(1 * time.Second)

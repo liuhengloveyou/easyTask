@@ -23,15 +23,10 @@ func InitHttpApi(addr string, auth bool) (handler http.Handler) {
 		auth: auth,
 	}
 
-	//// 用户接口; 不能放在这里
-	//if auth {
-	//	http.Handle("/user", passport.InitUserHttpService(""))
-	//}
-
 	if addr != "" {
 		//http.Handle("/monitor", &MonitorHandler{})
 		http.Handle("/web/", http.StripPrefix("/web/", http.FileServer(http.Dir("./static/"))))
-		http.Handle("/", &HttpServer{})
+		http.Handle("/api", &HttpServer{})
 		s := &http.Server{
 			Addr:           addr,
 			ReadTimeout:    10 * time.Minute,
@@ -46,7 +41,7 @@ func InitHttpApi(addr string, auth bool) (handler http.Handler) {
 	return
 }
 
-type HttpServer struct{
+type HttpServer struct {
 	auth bool
 }
 

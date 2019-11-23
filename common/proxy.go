@@ -17,7 +17,7 @@ type proxyResp struct {
 }
 
 func GetProxyURL() (domain, port, auth string, err error) {
-	_, body, err := gocommon.GetRequest("http://14.18.242.38:8095/open?api=pkajuzne", map[string]string{
+	_, body, err := gocommon.GetRequest("http://14.18.242.38:8095/open?api=pkajuzne&area=440100", map[string]string{
 		"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36",
 	})
 

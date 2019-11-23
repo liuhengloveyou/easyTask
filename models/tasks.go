@@ -12,9 +12,9 @@ import (
 
 type Task struct {
 	ID         int64         `json:"id" db:"id"`               // 任务ID
-	UID        int64         `json:"uid" db:"uid"`             // 用户ID
 	Rid        string        `json:"rid" db:"rid"`             // 记录ID
 	TaskType   string        `json:"task_type" db:"task_type"` // 任务类型
+	UID        sql.NullInt64 `json:"uid" db:"uid"`             // 用户ID
 	TaskInfo   gocommon.JSON `json:"task_info" db:"task_info"` // 任务内容
 	Stat       int           `json:"stat" db:"stat"`           // 任务状态
 	Rapper     string        `json:"name" db:"rapper"`
@@ -36,8 +36,8 @@ func (p *Task) Insert() (id int64, e error) {
 		"update_time": sql.NullTime{Valid: true, Time: time.Now()},
 	}
 
-	if p.UID > 0 {
-		data["uid"] = p.UID
+	if p.UID.Int64 > 0 {
+		data["uid"] = p.UID.Int64
 	}
 
 	sqlStr, valArr, err := builder.BuildInsert(table, []map[string]interface{}{data})
@@ -59,7 +59,7 @@ func (p *Task) Query(pageNO, pageSize uint) (tasks []Task, e error) {
 	table := "tasks"
 	selectFields := []string{"id", "uid", "rid", "task_type", "task_info", "stat", "update_time"}
 	where := map[string]interface{}{
-		"_orderby":  "id asc",
+		"_orderby": "id asc",
 		"_limit":   []uint{(pageNO - 1) * pageSize, pageSize},
 	}
 
@@ -69,8 +69,8 @@ func (p *Task) Query(pageNO, pageSize uint) (tasks []Task, e error) {
 	if p.Stat >= 0 {
 		where["stat"] = p.Stat
 	}
-	if p.UID > 0 {
-		where["uid"] = p.UID
+	if p.UID.Int64 > 0 {
+		where["uid"] = p.UID.Int64
 	}
 
 	cond, vals, err := builder.BuildSelect(table, where, selectFields)

@@ -1,5 +1,5 @@
 pid: "/tmp/task.pid"
-auth: true
+auth: false
 addr: ":18888"
 mysql: "root:lhisroot@tcp(127.0.0.1:3306)/taskmanager?charset=utf8&parseTime=true"
 log_dir: "./logs/" # 日志目录

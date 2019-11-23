@@ -9,9 +9,8 @@ import (
 type DaikanTaskInfo struct {
 	Rid        string `json:"rid"`     // 记录ID
 	WebSite    string `json:"website"` // 网课网站名
-	School     string `json:"school"`  // 学校名
-	Student    string `json:"student"` // 学生学号
-	StudentPWD string `json:"pwd"`     // 登录网课网站密码
+	Account     string `json:"account"`  // 账号
+	PWD string `json:"pwd"`     // 登录网课网站密码
 	Course     string `json:"course"`  // 课程标题
 }
 
@@ -22,17 +21,16 @@ func (p *DaikanTaskInfo) GetRid() string {
 // 学习通/超星 湖南涉外 1841410112 3993831 asdf
 func (p *DaikanTaskInfo) FromString(raw string) error {
 	fields := strings.Fields(raw)
-	if len(fields) != 5 {
-		return fmt.Errorf("format ERR")
+	if len(fields) != 4 {
+		return fmt.Errorf("数据格式错误")
 	}
 
 	p.WebSite = fields[0]
-	p.School = fields[1]
-	p.Student = fields[2]
-	p.StudentPWD = fields[3]
-	p.Course = fields[4]
+	p.Account = fields[1]
+	p.PWD = fields[2]
+	p.Course = fields[3]
 
-	p.Rid = p.WebSite + "~" + p.School + "~" + p.Student + "~" + p.Course
+	p.Rid = p.WebSite + "~" + p.Account + "~" + p.Course
 
 	return nil
 }

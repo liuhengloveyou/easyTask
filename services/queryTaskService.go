@@ -1,6 +1,7 @@
 package services
 
 import (
+	"database/sql"
 	"github.com/liuhengloveyou/easyTask/models"
 	"github.com/liuhengloveyou/easyTask/rappers"
 )
@@ -32,8 +33,9 @@ func GetTaskService(taskType string, num int) (tasks []models.Task, err error) {
 func QueryTaskService(uid int64, taskType string, pageNO, pageSize uint) (tasks []models.Task, err error) {
 	model := models.Task{
 		ID:       -1,
-		UID:      uid,
+		UID:      sql.NullInt64{Valid:true, Int64:uid},
 		TaskType: taskType,
+		Stat: -1,
 	}
 
 	tasks, err = model.Query(pageNO, pageSize)

@@ -63,7 +63,7 @@ func UpdateTaskToServe(task models.Task) error {
 
 	body, _ := json.Marshal(task)
 
-	resp, _, err := gocommon.PostRequest(common.ClientConfig.TaskServeAddr+"/updatetask", nil, nil, body)
+	resp, _, err := gocommon.PostRequest(common.ClientConfig.TaskServeAddr+"/api", map[string]string{"X-API": "/task/update"}, nil, body)
 	if err != nil {
 		return fmt.Errorf("updateTaskToServe ERR: %s", err.Error())
 	}
