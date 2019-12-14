@@ -1,7 +1,6 @@
 package services
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -35,7 +34,7 @@ func addTaskOne(uid int64, taskType, data string) (ids []int64, err error) {
 		return
 	}
 
-	task := &models.Task{UID: sql.NullInt64{Valid:true, Int64: uid}}
+	task := &models.Task{UID: uid}
 	task.TaskType = taskType
 	task.Stat = models.TaskStatusNew
 	if info.GetRid() != "" {
@@ -77,7 +76,7 @@ func addTaskBatch(uid int64, taskType, data string) (ids []int64, err error) {
 			return nil, fmt.Errorf("数据格式错误")
 		}
 
-		task := &models.Task{UID: sql.NullInt64{Valid:true, Int64:uid}}
+		task := &models.Task{UID: uid}
 		task.TaskType = taskType
 		task.Stat = models.TaskStatusNew
 		if info.GetRid() != "" {

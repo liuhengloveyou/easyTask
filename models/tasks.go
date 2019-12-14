@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/liuhengloveyou/easyTask/common"
@@ -12,14 +13,14 @@ import (
 
 type Task struct {
 	ID         int64         `json:"id" db:"id"`               // 任务ID
+	UID        int64         `json:"uid" db:"uid"`             // 用户ID
 	Rid        string        `json:"rid" db:"rid"`             // 记录ID
-	TaskType   string        `json:"task_type" db:"task_type"` // 任务类型
-	UID        sql.NullInt64 `json:"uid" db:"uid"`             // 用户ID
 	TaskInfo   gocommon.JSON `json:"task_info" db:"task_info"` // 任务内容
-	Stat       int           `json:"stat" db:"stat"`           // 任务状态
+	TaskType   string        `json:"task_type" db:"task_type"` // 任务类型
+	Stat       string        `json:"stat" db:"stat"`           // 任务状态
 	Rapper     string        `json:"name" db:"rapper"`
-	AddTime    time.Time     `json:"add_time" db:"add_time"`       // 添加时间
-	UpdateTime sql.NullTime  `json:"update_time" db:"update_time"` // 更新时间
+	AddTime    *time.Time    `json:"addTime" db:"add_time"`       // 添加时间
+	UpdateTime *time.Time    `json:"updateTime" db:"update_time"` // 更新时间
 	Remark     string        `json:"remark" db:"remark"`
 }
 
@@ -36,8 +37,8 @@ func (p *Task) Insert() (id int64, e error) {
 		"update_time": sql.NullTime{Valid: true, Time: time.Now()},
 	}
 
-	if p.UID.Int64 > 0 {
-		data["uid"] = p.UID.Int64
+	if p.UID > 0 {
+		data["uid"] = p.UID
 	}
 
 	sqlStr, valArr, err := builder.BuildInsert(table, []map[string]interface{}{data})
@@ -66,11 +67,11 @@ func (p *Task) Query(pageNO, pageSize uint) (tasks []Task, e error) {
 	if p.TaskType != "" {
 		where["task_type"] = p.TaskType
 	}
-	if p.Stat >= 0 {
+	if p.Stat != "" {
 		where["stat"] = p.Stat
 	}
-	if p.UID.Int64 > 0 {
-		where["uid"] = p.UID.Int64
+	if p.UID > 0 {
+		where["uid"] = p.UID
 	}
 
 	cond, vals, err := builder.BuildSelect(table, where, selectFields)
@@ -86,11 +87,38 @@ func (p *Task) Query(pageNO, pageSize uint) (tasks []Task, e error) {
 func (p *Task) Update() (row int64, e error) {
 	var rst sql.Result
 
-	sqlStr := "UPDATE tasks SET stat=?, rapper=?, remark=? WHERE id=?"
-	where := []interface{}{p.Stat, p.Rapper, p.Remark, p.ID}
+	table := "tasks"
+	where := map[string]interface{}{
+		"id": p.ID,
+	}
+	if p.UpdateTime != nil {
+		where["update_time"] = p.UpdateTime
 
-	logger.Info("Task.update sql: ", sqlStr, where)
-	rst, e = common.DB.Exec(sqlStr, where...)
+	}
+	if p.UID > 0 {
+
+	}
+
+	update := make(map[string]interface{})
+	if p.Stat != "" {
+		update["stat"] = p.Stat
+	}
+	if p.Rapper != "" {
+		update["rapper"] = p.Rapper
+	}
+	if p.Remark != "" {
+		update["remark"] = p.Remark
+	}
+
+	sqlStr, valArr, err := builder.BuildUpdate(table, where, update)
+	common.Logger.Sugar().Debug("Task.Update sql: ", sqlStr, valArr, err)
+	if err != nil {
+		common.Logger.Sugar().Errorf("Task.update BuildUpdate ERR: ", err.Error())
+		return 0, fmt.Errorf("服务错误")
+	}
+
+	logger.Info("Task.update sql: ", sqlStr, valArr)
+	rst, e = common.DB.Exec(sqlStr, valArr...)
 	if e == nil {
 		return rst.RowsAffected()
 	}

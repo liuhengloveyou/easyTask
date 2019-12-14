@@ -17,16 +17,14 @@ var (
 	logger *zap.SugaredLogger
 )
 
-func InitHttpApi(addr string, auth bool) (handler http.Handler) {
+func InitHttpApi(addr string) (handler *TaskHttpServer) {
 	logger = common.Logger.Sugar()
-	handler = &HttpServer{
-		auth: auth,
-	}
+	handler = &TaskHttpServer{}
 
 	if addr != "" {
 		//http.Handle("/monitor", &MonitorHandler{})
 		http.Handle("/web/", http.StripPrefix("/web/", http.FileServer(http.Dir("./static/"))))
-		http.Handle("/api", &HttpServer{})
+		http.Handle("/api", handler)
 		s := &http.Server{
 			Addr:           addr,
 			ReadTimeout:    10 * time.Minute,
@@ -41,11 +39,11 @@ func InitHttpApi(addr string, auth bool) (handler http.Handler) {
 	return
 }
 
-type HttpServer struct {
-	auth bool
+type TaskHttpServer struct {
+	AuthFilter func(w http.ResponseWriter, r *http.Request) (*sessions.Session, bool)
 }
 
-func (p *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (p *TaskHttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 跨域资源共享
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
 	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE")
@@ -58,8 +56,8 @@ func (p *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if p.auth {
-		sess, auth := AuthFilter(w, r)
+	if p.AuthFilter != nil {
+		sess, auth := p.AuthFilter(w, r)
 		if false == auth {
 			return // 没有登录
 		}
@@ -78,10 +76,12 @@ func (p *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		AddTaskBatchAPI(w, r) // 批量添加任务
 	case "/task/query":
 		QueryTaskAPI(w, r) // 查询任务详情
-	case "/task/get":
+	case "/task/distribute":
 		GetTaskAPI(w, r) // 分发任务
 	case "/task/update":
 		UpdateTaskAPI(w, r) // 更新任务
+	case "/task/redo":
+		RedoTaskAPI(w, r) // 重做
 	default:
 		gocommon.HttpErr(w, http.StatusNotFound, 0, "")
 		return
