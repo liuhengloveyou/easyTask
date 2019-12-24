@@ -10,11 +10,10 @@ import (
 )
 
 const (
-	TaskStatusNew  = "新增"
+	TaskStatusNew  = "末处理"
 	TaskStatusSend = "0" // 进度为0
 	TaskStatusOK   = "完成"
-	TaskStatusERR  = "出错"
-	TaskStatusReDo = "重做"
+	TaskStatusERR  = "失败"
 )
 
 var (

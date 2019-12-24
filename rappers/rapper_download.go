@@ -10,6 +10,7 @@ import (
 	"github.com/liuhengloveyou/easyTask/models"
 
 	gocommon "github.com/liuhengloveyou/go-common"
+	null "gopkg.in/guregu/null.v3/zero"
 )
 
 // 任务描述信息
@@ -18,7 +19,6 @@ type DownloadTaskInfo struct {
 	Type string `json:"ftype"` // 文件类型
 	URL  string `json:"url"`   // 文件下载URL
 }
-
 
 func (p *DownloadTaskInfo) GetRid() string {
 	return p.Rid
@@ -73,20 +73,20 @@ func (this *DownloadRapper) Run() {
 			DstPath: "./dist/" + oneTask.Rid + taskInfo.Type,
 		}
 		if domain != "" && port != "" {
-			downer.ProxyUrl = "http://"+domain+":" + port
+			downer.ProxyUrl = "http://" + domain + ":" + port
 			downer.ProxyAuth = proxyAuth
 		}
 		common.Logger.Sugar().Infof("downing %v %v\n", downer.ProxyUrl, downer.URL)
 		resp, err := downer.Download(context.Background())
 		if err != nil || resp.StatusCode != http.StatusOK {
 			oneTask.Stat = models.TaskStatusERR
-			oneTask.Remark = err.Error()
+			oneTask.Remark = null.NewString(err.Error(), true)
 		} else {
 			oneTask.Stat = models.TaskStatusOK
-			oneTask.Remark = oneTask.Rid + taskInfo.Type
+			oneTask.Remark = null.NewString(oneTask.Rid+taskInfo.Type, true)
 		}
 
-		common.Logger.Sugar().Debugf("close proxy %v\n", domain + ":" + port)
+		common.Logger.Sugar().Debugf("close proxy %v\n", domain+":"+port)
 		common.CloseProxyURL(port)
 
 		oneTask.Rapper = common.ClientConfig.Name

@@ -17,30 +17,35 @@ func AddTaskAPI(w http.ResponseWriter, r *http.Request) {
 	if r.Context().Value("session") != nil {
 		UserID = r.Context().Value("session").(*sessions.Session).Values[passport.SessUserInfoKey].(passportcommon.User).UID
 	}
+	if UserID <= 0 {
+		gocommon.HttpErr(w, http.StatusForbidden, -1, "")
+
+		return
+	}
 
 	taskType := r.FormValue("type")
 	if taskType == "" {
 		logger.Errorf("AddTask type para ERR")
-		gocommon.HttpErr(w, http.StatusOK, -1, "参数错误")
+		gocommon.HttpErr(w, http.StatusOK, -1, "请求错误")
 		return
 	}
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		logger.Errorf("AddTask body ERR: ", err)
-		gocommon.HttpErr(w, http.StatusOK, -1, "读取数据出错")
+		gocommon.HttpErr(w, http.StatusOK, -1, "请求错误")
 		return
 	}
 
 	logger.Debug("AddTask body: ", string(body))
 
-	if string(body) == "" {
+	if len(body) < 5 {
 		logger.Errorf("AddTask requst ERR")
-		gocommon.HttpErr(w, http.StatusOK, -1, "读取数据出错")
+		gocommon.HttpErr(w, http.StatusOK, -1, "请求错误")
 		return
 	}
 
-	id, err := services.AddTaskService(UserID, taskType, string(body), false)
+	id, err := services.AddTaskService(UserID, taskType, body, false)
 	if err != nil {
 		logger.Errorf("AddTask service ERR: %v\n", err.Error())
 		gocommon.HttpErr(w, http.StatusOK, -1, err.Error())
@@ -81,7 +86,7 @@ func AddTaskBatchAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ids, err := services.AddTaskService(UserID, taskType, string(body), true)
+	ids, err := services.AddTaskService(UserID, taskType, body, true)
 	if err != nil {
 		logger.Errorf("AddTask service ERR: %v\n", err.Error())
 		gocommon.HttpErr(w, http.StatusOK, -1, err.Error())

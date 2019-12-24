@@ -44,13 +44,6 @@ func (this *TaskQueue) DistTask() Task {
 
 	task := <-this.taskChan
 
-	// 更新任务状态
-	task.Stat = TaskStatusSend
-	if rows, err := task.Update(); rows != 1 || err != nil {
-		logger.Errorf("update task state to send ERR: %d %v \n", rows, err)
-	}
-	logger.Infof("update task to send OK: %d %v\n", task.ID, task.Rid)
-
 	return task
 }
 
@@ -75,6 +68,12 @@ func (this *TaskQueue) realDistTask() {
 		for _, task := range tasks {
 			this.taskChan <- task
 			logger.Debugf("task to queue: %v %v\n", task.ID, task.Rid)
+			// 更新任务状态
+			task.Stat = TaskStatusSend
+			if rows, err := task.Update(); rows != 1 || err != nil {
+				logger.Errorf("update task state to send ERR: %d %v \n", rows, err)
+			}
+			logger.Infof("update task to send OK: %d %v\n", task.ID, task.Rid)
 		}
 	}
 }

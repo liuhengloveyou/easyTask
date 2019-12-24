@@ -9,6 +9,7 @@ import (
 
 	"github.com/didi/gendry/builder"
 	gocommon "github.com/liuhengloveyou/go-common"
+	null "gopkg.in/guregu/null.v3/zero"
 )
 
 type Task struct {
@@ -21,7 +22,7 @@ type Task struct {
 	Rapper     string        `json:"name" db:"rapper"`
 	AddTime    *time.Time    `json:"addTime" db:"add_time"`       // 添加时间
 	UpdateTime *time.Time    `json:"updateTime" db:"update_time"` // 更新时间
-	Remark     string        `json:"remark" db:"remark"`
+	Remark     null.String   `json:"remark" db:"remark"`
 }
 
 func (p *Task) Insert() (id int64, e error) {
@@ -56,9 +57,18 @@ func (p *Task) Insert() (id int64, e error) {
 	return
 }
 
+func (p *Task) Delete(tx *sql.Tx) (rst sql.Result, err error) {
+	sqlStr := "DELETE FROM tasks WHERE (`id` = ? and uid = ?)"
+	logger.Debug("Task.Insert sql: ", p.ID, p.UID)
+
+	rst, err = common.DB.Exec(sqlStr, p.ID, p.UID)
+
+	return
+}
+
 func (p *Task) Query(pageNO, pageSize uint) (tasks []Task, e error) {
 	table := "tasks"
-	selectFields := []string{"id", "uid", "rid", "task_type", "task_info", "stat", "update_time"}
+	selectFields := []string{"id", "uid", "rid", "task_type", "task_info", "stat", "remark", "add_time", "update_time"}
 	where := map[string]interface{}{
 		"_orderby": "id asc",
 		"_limit":   []uint{(pageNO - 1) * pageSize, pageSize},
@@ -106,8 +116,8 @@ func (p *Task) Update() (row int64, e error) {
 	if p.Rapper != "" {
 		update["rapper"] = p.Rapper
 	}
-	if p.Remark != "" {
-		update["remark"] = p.Remark
+	if p.Remark.Valid {
+		update["remark"] = p.Remark.String
 	}
 
 	sqlStr, valArr, err := builder.BuildUpdate(table, where, update)

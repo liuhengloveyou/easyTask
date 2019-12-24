@@ -74,6 +74,8 @@ func (p *TaskHttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		AddTaskAPI(w, r) // 添加一个任务
 	case "/task/add/batch":
 		AddTaskBatchAPI(w, r) // 批量添加任务
+	case "/task/delete":
+		DeleteTaskAPI(w, r) // 删除自己的任务
 	case "/task/query":
 		QueryTaskAPI(w, r) // 查询任务详情
 	case "/task/distribute":

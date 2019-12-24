@@ -29,7 +29,7 @@ func RedoTaskService(uid int64, body []byte) error {
 		return e
 	}
 	task.UID = uid
-	task.Stat = models.TaskStatusReDo
+	task.Stat = models.TaskStatusNew
 
 	return realUpdateTaskService(task)
 }

@@ -10,7 +10,7 @@ import (
 )
 
 // 添加任务
-func AddTaskService(uid int64, taskType, data string, batch bool) (ids []int64, err error) {
+func AddTaskService(uid int64, taskType string, data []byte, batch bool) (ids []int64, err error) {
 	// 任务类型有吗？
 	if _, err = rappers.NewRapper(taskType); err != nil {
 		logger.Errorf("AddTaskService no rapper types: %s\n", taskType)
@@ -25,7 +25,7 @@ func AddTaskService(uid int64, taskType, data string, batch bool) (ids []int64, 
 }
 
 // 添加任务
-func addTaskOne(uid int64, taskType, data string) (ids []int64, err error) {
+func addTaskOne(uid int64, taskType string, data []byte) (ids []int64, err error) {
 	rapper, _ := rappers.NewRapper(taskType)
 
 	info := rapper.NewTaskInfo()
@@ -58,10 +58,10 @@ func addTaskOne(uid int64, taskType, data string) (ids []int64, err error) {
 	return
 }
 
-func addTaskBatch(uid int64, taskType, data string) (ids []int64, err error) {
+func addTaskBatch(uid int64, taskType string, data []byte) (ids []int64, err error) {
 	rapper, _ := rappers.NewRapper(taskType)
 
-	lines := strings.Split(data, "\r\n")
+	lines := strings.Split(string(data), "\r\n")
 	for _, line := range lines {
 		line := strings.TrimSpace(line)
 		if line == "" {
